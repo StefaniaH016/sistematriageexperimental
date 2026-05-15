@@ -1,19 +1,19 @@
 import { Routes } from '@angular/router';
+import { LoginComponent } from './components/login/login.component';
 import { DashboardComponent } from './components/dashboard/dashboard.component';
 import { SolicitudListComponent } from './components/solicitud-list/solicitud-list.component';
 import { SolicitudCreateComponent } from './components/solicitud-create/solicitud-create.component';
 import { SolicitudDetailComponent } from './components/solicitud-detail/solicitud-detail.component';
 import { UsuarioListComponent } from './components/usuario-list/usuario-list.component';
-import { AuthComponent } from './components/auth/auth.component';
 import { authGuard } from './core/guards/auth.guard';
 
 export const routes: Routes = [
-  { path: '', redirectTo: 'login', pathMatch: 'full' },
-  { path: 'login', component: AuthComponent },
+  { path: '', redirectTo: '/login', pathMatch: 'full' },
+  { path: 'login', component: LoginComponent },
   { path: 'dashboard', component: DashboardComponent, canActivate: [authGuard] },
   { path: 'solicitudes', component: SolicitudListComponent, canActivate: [authGuard] },
   { path: 'solicitudes/nueva', component: SolicitudCreateComponent, canActivate: [authGuard] },
   { path: 'solicitudes/:id', component: SolicitudDetailComponent, canActivate: [authGuard] },
   { path: 'usuarios', component: UsuarioListComponent, canActivate: [authGuard] },
-  { path: '**', redirectTo: 'login' }
+  { path: '**', redirectTo: '/login' }
 ];

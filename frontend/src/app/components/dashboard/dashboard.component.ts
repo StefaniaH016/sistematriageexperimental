@@ -4,6 +4,7 @@ import { RouterLink, Router, NavigationEnd } from '@angular/router';
 import { Subscription, filter, finalize } from 'rxjs';
 import { SolicitudService } from '../../services/solicitud.service';
 import { DataRefreshService } from '../../services/data-refresh.service';
+import { AuthService } from '../../services/auth.service';
 import {
   SolicitudResponse,
   EstadoSolicitud,
@@ -33,13 +34,6 @@ import {
             </svg>
             {{ cargando ? 'Actualizando...' : 'Actualizar' }}
           </button>
-          <a routerLink="/solicitudes/nueva" class="btn-primary">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <circle cx="12" cy="12" r="10"/>
-              <path d="M12 8v8M8 12h8"/>
-            </svg>
-            Nueva Solicitud
-          </a>
         </div>
       </header>
 
@@ -159,7 +153,9 @@ import {
                   <rect x="9" y="3" width="6" height="4" rx="1"/>
                 </svg>
                 <p>No hay solicitudes registradas</p>
-                <a routerLink="/solicitudes/nueva" class="btn-link">Crear primera solicitud</a>
+                @if (authService.currentUserValue?.rol === 'ESTUDIANTE') {
+                  <a routerLink="/solicitudes/nueva" class="btn-link">Crear primera solicitud</a>
+                }
               </div>
             } @else {
               <div class="recent-list">
@@ -635,7 +631,8 @@ export class DashboardComponent implements OnInit, OnDestroy {
     private solicitudService: SolicitudService,
     private router: Router,
     private cdr: ChangeDetectorRef,
-    private refreshService: DataRefreshService
+    private refreshService: DataRefreshService,
+    public authService: AuthService
   ) {}
 
   ngOnInit(): void {

@@ -35,26 +35,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     ) throws ServletException, IOException {
 
         final String authHeader = request.getHeader("Authorization");
-        final String mockUserEmail = request.getHeader("X-Mock-User-Email");
         final String jwt;
         final String userEmail;
-
-        // Mock para Hito 2: Evadir JWT usando un header directo de prueba
-        if (mockUserEmail != null && !mockUserEmail.isBlank()) {
-            try {
-                UserDetails userDetails = this.userDetailsService.loadUserByUsername(mockUserEmail);
-                UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
-                        userDetails, null, userDetails.getAuthorities()
-                );
-                authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-                SecurityContextHolder.getContext().setAuthentication(authToken);
-                logger.warn("ATENCIÓN: Autenticado mediante Mock Header (X-Mock-User-Email) para pruebas del Hito 2.");
-            } catch (Exception e) {
-                logger.error("Error en Mock Authentication: " + e.getMessage());
-            }
-            filterChain.doFilter(request, response);
-            return;
-        }
 
         // Si no hay header Authorization o no empieza con "Bearer ", continuar sin autenticar
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {

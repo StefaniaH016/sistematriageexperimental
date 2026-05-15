@@ -1,0 +1,56 @@
+<div class="login-container">
+  <div class="login-card animate-slide-up">
+    <h2 class="text-gradient">Sistema de Triage Académico</h2>
+    <p>{{ isLogin ? 'Ingresa tus credenciales para continuar' : 'Crea una cuenta nueva para acceder' }}</p>
+
+    <div *ngIf="errorMensaje" class="alert-error">
+      {{ errorMensaje }}
+    </div>
+    
+    <div *ngIf="exitoMensaje" style="background: rgba(16, 185, 129, 0.1); border-left: 4px solid #10b981; color: #34d399; padding: 12px 16px; border-radius: 6px; margin-bottom: 20px;" class="animate-fade-in">
+      {{ exitoMensaje }}
+    </div>
+
+    <form (ngSubmit)="submit()">
+      <ng-container *ngIf="!isLogin">
+        <div class="form-group">
+          <label>Identificación</label>
+          <input type="text" name="identificacion" [(ngModel)]="credenciales.identificacion" required>
+        </div>
+        <div class="form-group">
+          <label>Nombres</label>
+          <input type="text" name="nombre" [(ngModel)]="credenciales.nombre" required>
+        </div>
+        <div class="form-group">
+          <label>Apellidos</label>
+          <input type="text" name="apellido" [(ngModel)]="credenciales.apellido" required>
+        </div>
+        <div class="form-group">
+          <label>Rol Académico</label>
+          <select name="rol" [(ngModel)]="credenciales.rol" required>
+            <option value="ESTUDIANTE">Estudiante</option>
+            <option value="DOCENTE">Docente</option>
+          </select>
+        </div>
+      </ng-container>
+
+      <div class="form-group">
+        <label>Email Institucional</label>
+        <input type="email" name="email" [(ngModel)]="credenciales.email" required placeholder="ejemplo@uq.edu.co">
+      </div>
+      
+      <div class="form-group">
+        <label>Contraseña</label>
+        <input type="password" name="password" [(ngModel)]="credenciales.password" required>
+      </div>
+
+      <button type="submit" class="btn-primary">{{ isLogin ? 'Iniciar Sesión' : 'Registrarse' }}</button>
+    </form>
+    
+    <div style="margin-top: 20px; text-align: center; font-size: 14px;">
+      <a href="javascript:void(0)" (click)="toggleMode()" style="color: var(--accent-focus, #60a5fa); text-decoration: none; font-weight: 500; transition: 0.2s;">
+        {{ isLogin ? '¿No tienes cuenta? Regístrate aquí' : '¿Ya tienes cuenta? Inicia sesión' }}
+      </a>
+    </div>
+  </div>
+</div>

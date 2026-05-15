@@ -5,6 +5,7 @@ import { Router } from '@angular/router';
 import { finalize } from 'rxjs';
 import { SolicitudService } from '../../services/solicitud.service';
 import { UsuarioService } from '../../services/usuario.service';
+import { AuthService } from '../../services/auth.service';
 import { DataRefreshService } from '../../services/data-refresh.service';
 import {
   SolicitudRequest,
@@ -124,26 +125,33 @@ import {
                 </svg>
                 Solicitante
               </label>
-              @if (cargandoUsuarios) {
-                <div class="loading-select">
-                  <span class="spinner-xs"></span>
-                  Cargando usuarios...
-                </div>
-              } @else if (usuarios.length === 0) {
-                <div class="empty-select">
-                  <span>No hay usuarios disponibles</span>
-                  <button type="button" class="btn-retry" (click)="cargarUsuarios()">
-                    Reintentar
-                  </button>
+              @if (authService.currentUserValue?.rol === 'ESTUDIANTE') {
+                <div class="form-input readonly-field">
+                  {{ authService.currentUserValue?.nombre }} {{ authService.currentUserValue?.apellido }}
+                  <span class="badge-rol">ESTUDIANTE</span>
                 </div>
               } @else {
-                <select id="solicitante" [(ngModel)]="solicitud.solicitanteId" name="solicitanteId" required class="form-input">
-                  <option [ngValue]="0" disabled>Seleccione un solicitante...</option>
-                  @for (u of usuarios; track u.id) {
-                    <option [ngValue]="u.id">{{ u.nombre }} {{ u.apellido }} ({{ rolLabel(u.rol) }})</option>
-                  }
-                </select>
-                <span class="field-hint">{{ usuarios.length }} usuario(s) disponible(s)</span>
+                @if (cargandoUsuarios) {
+                  <div class="loading-select">
+                    <span class="spinner-xs"></span>
+                    Cargando usuarios...
+                  </div>
+                } @else if (usuarios.length === 0) {
+                  <div class="empty-select">
+                    <span>No hay usuarios disponibles</span>
+                    <button type="button" class="btn-retry" (click)="cargarUsuarios()">
+                      Reintentar
+                    </button>
+                  </div>
+                } @else {
+                  <select id="solicitante" [(ngModel)]="solicitud.solicitanteId" name="solicitanteId" required class="form-input">
+                    <option [ngValue]="0" disabled>Seleccione un solicitante...</option>
+                    @for (u of usuarios; track u.id) {
+                      <option [ngValue]="u.id">{{ u.nombre }} {{ u.apellido }} ({{ rolLabel(u.rol) }})</option>
+                    }
+                  </select>
+                  <span class="field-hint">{{ usuarios.length }} usuario(s) disponible(s)</span>
+                }
               }
             </div>
           </div>
@@ -463,6 +471,24 @@ import {
       margin-top: 0.3rem;
     }
 
+    .readonly-field {
+      background: var(--color-bg-alt, #edeae5);
+      cursor: not-allowed;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .badge-rol {
+      font-size: 0.7rem;
+      font-weight: 700;
+      padding: 0.2rem 0.5rem;
+      background: var(--color-primary, #8b7355);
+      color: white;
+      border-radius: 4px;
+      text-transform: uppercase;
+    }
+
     @media (max-width: 640px) {
       .page {
         padding: 1.5rem 1rem;
@@ -507,12 +533,19 @@ export class SolicitudCreateComponent implements OnInit {
   constructor(
     private solicitudService: SolicitudService,
     private usuarioService: UsuarioService,
+    public authService: AuthService,
     private router: Router,
     private refreshService: DataRefreshService
   ) {}
 
   ngOnInit(): void {
-    this.cargarUsuarios();
+    const user = this.authService.currentUserValue;
+    if (user && user.rol === 'ESTUDIANTE') {
+      this.solicitud.solicitanteId = user.id;
+      this.cargandoUsuarios = false;
+    } else {
+      this.cargarUsuarios();
+    }
   }
 
   cargarUsuarios(): void {

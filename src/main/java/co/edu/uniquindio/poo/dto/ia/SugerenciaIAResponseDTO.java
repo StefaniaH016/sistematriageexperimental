@@ -18,10 +18,10 @@ import java.time.LocalDateTime;
 public class SugerenciaIAResponseDTO {
 
     private Long solicitudId;
-    private String sugerenciaRespuesta;
-    private TipoSolicitud tipoSolicitudSugerido;
-    private Prioridad prioridadSugerida;
-    private String justificacionIA;
+    private String tipoSugerido;
+    private String prioridadSugerida;
+    private String resumen;
+    private String razonamiento;
     private String modeloUtilizado;
     private LocalDateTime generadoEn;
 }

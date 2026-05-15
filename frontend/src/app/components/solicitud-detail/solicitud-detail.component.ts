@@ -5,6 +5,7 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { finalize } from 'rxjs';
 import { SolicitudService } from '../../services/solicitud.service';
 import { UsuarioService } from '../../services/usuario.service';
+import { AuthService } from '../../services/auth.service';
 import { IaService, SugerenciaIAResponseDTO } from '../../services/ia.service';
 import {
   SolicitudResponse,
@@ -26,10 +27,15 @@ export class AnyToTipoPipe implements PipeTransform {
   transform(value: any): TipoSolicitud { return value as TipoSolicitud; }
 }
 
+@Pipe({ name: 'anyToPrioridad', standalone: true })
+export class AnyToPrioridadPipe implements PipeTransform {
+  transform(value: any): Prioridad { return value as Prioridad; }
+}
+
 @Component({
   selector: 'app-solicitud-detail',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink, AnyToTipoPipe],
+  imports: [CommonModule, FormsModule, RouterLink, AnyToTipoPipe, AnyToPrioridadPipe],
   template: `
     <div class="page">
       @if (cargando) {
@@ -165,7 +171,7 @@ export class AnyToTipoPipe implements PipeTransform {
           </div>
 
           <!-- Actions Panel -->
-          @if (solicitud.estado !== 'CERRADA') {
+          @if (solicitud.estado !== 'CERRADA' && (authService.currentUserValue?.rol === 'RESPONSABLE' || authService.currentUserValue?.rol === 'ADMINISTRATIVO')) {
             <div class="card actions-card">
               <div class="card-header-title">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -174,8 +180,8 @@ export class AnyToTipoPipe implements PipeTransform {
                 <h2>Acciones</h2>
               </div>
 
-              <!-- RF-02: Clasificar -->
-              @if (solicitud.estado === 'REGISTRADA') {
+              <!-- RF-02: Clasificar (Solo Administrativo) -->
+              @if (authService.currentUserValue?.rol === 'ADMINISTRATIVO' && solicitud.estado === 'REGISTRADA') {
                 <div class="action-section">
                   <div class="action-header">
                     <h3>Clasificar Solicitud</h3>
@@ -191,8 +197,20 @@ export class AnyToTipoPipe implements PipeTransform {
                     <div class="ia-suggestion">
                       <div class="ia-badge">IA</div>
                       <div class="ia-content">
-                        <strong>Sugerencia:</strong> {{ tipoLabel(sugerenciaIA.tipoSugerido | anyToTipo) }}
-                        <p class="ia-reason">"{{ sugerenciaIA.razonamiento }}"</p>
+                        <div class="ia-main-suggestion">
+                          <strong>Tipo:</strong> {{ tipoLabel(sugerenciaIA.tipoSugerido | anyToTipo) }}
+                          <span class="sep">|</span>
+                          <strong>Prioridad:</strong> {{ prioridadLabel(sugerenciaIA.prioridadSugerida | anyToPrioridad) }}
+                        </div>
+                        @if (sugerenciaIA.razonamiento) {
+                          <p class="ia-reason">"{{ sugerenciaIA.razonamiento }}"</p>
+                        }
+                        @if (sugerenciaIA.resumen) {
+                          <div class="ia-resumen-box">
+                            <strong>Borrador de respuesta:</strong>
+                            <p class="ia-resumen">{{ sugerenciaIA.resumen }}</p>
+                          </div>
+                        }
                       </div>
                       <button class="btn-icon" (click)="aplicarSugerenciaIA()" title="Aplicar sugerencia">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -214,8 +232,8 @@ export class AnyToTipoPipe implements PipeTransform {
                 </div>
               }
 
-              <!-- RF-03: Priorizar -->
-              @if (solicitud.estado === 'CLASIFICADA' || solicitud.estado === 'REGISTRADA') {
+              <!-- RF-03: Priorizar (Solo Administrativo) -->
+              @if (authService.currentUserValue?.rol === 'ADMINISTRATIVO' && (solicitud.estado === 'CLASIFICADA' || solicitud.estado === 'REGISTRADA')) {
                 <div class="action-section">
                   <h3>Priorizar Solicitud</h3>
                   <div class="action-form">
@@ -230,8 +248,8 @@ export class AnyToTipoPipe implements PipeTransform {
                 </div>
               }
 
-              <!-- RF-05: Asignar -->
-              @if (!solicitud.responsable) {
+              <!-- RF-05: Asignar (Solo Administrativo) -->
+              @if (authService.currentUserValue?.rol === 'ADMINISTRATIVO' && !solicitud.responsable) {
                 <div class="action-section">
                   <h3>Asignar Responsable</h3>
                   <div class="action-form">
@@ -247,22 +265,24 @@ export class AnyToTipoPipe implements PipeTransform {
                 </div>
               }
 
-              <!-- RF-04: Cambiar estado -->
-              <div class="action-section">
-                <h3>Cambiar Estado</h3>
-                <div class="action-form">
-                  <select [(ngModel)]="nuevoEstado" class="form-input">
-                    @for (e of estadosDisponibles; track e) {
-                      <option [value]="e">{{ estadoLabel(e) }}</option>
-                    }
-                  </select>
-                  <input type="text" [(ngModel)]="estadoObs" placeholder="Observaciones..." class="form-input">
-                  <button class="btn btn-action" (click)="cambiarEstado()">Cambiar</button>
+              <!-- RF-04: Cambiar estado (Admin o Responsable Asignado) -->
+              @if (authService.currentUserValue?.rol === 'ADMINISTRATIVO' || (authService.currentUserValue?.rol === 'RESPONSABLE' && solicitud.responsable?.id === authService.currentUserValue?.id)) {
+                <div class="action-section">
+                  <h3>Cambiar Estado</h3>
+                  <div class="action-form">
+                    <select [(ngModel)]="nuevoEstado" class="form-input">
+                      @for (e of estadosDisponibles; track e) {
+                        <option [value]="e">{{ estadoLabel(e) }}</option>
+                      }
+                    </select>
+                    <input type="text" [(ngModel)]="estadoObs" placeholder="Observaciones..." class="form-input">
+                    <button class="btn btn-action" (click)="cambiarEstado()">Cambiar</button>
+                  </div>
                 </div>
-              </div>
+              }
 
-              <!-- RF-08: Cerrar -->
-              @if (solicitud.estado === 'ATENDIDA') {
+              <!-- RF-08: Cerrar (Solo Administrativo) -->
+              @if (authService.currentUserValue?.rol === 'ADMINISTRATIVO' && solicitud.estado === 'ATENDIDA') {
                 <div class="action-section action-cerrar">
                   <h3>Cerrar Solicitud</h3>
                   <div class="action-form">
@@ -691,12 +711,46 @@ export class AnyToTipoPipe implements PipeTransform {
     }
 
     .ia-content { flex: 1; font-size: 0.85rem; }
-    .ia-content strong { color: var(--color-text, #3d3d3d); }
+    .ia-main-suggestion {
+      margin-bottom: 0.25rem;
+      font-weight: 500;
+    }
+
+    .ia-main-suggestion .sep {
+      margin: 0 0.5rem;
+      color: var(--color-border, #e0dcd5);
+    }
+
     .ia-reason {
-      margin: 0.4rem 0 0 0;
+      margin: 0.4rem 0;
       font-style: italic;
       color: var(--color-text-secondary, #6b6b6b);
       font-size: 0.8rem;
+    }
+
+    .ia-resumen-box {
+      margin-top: 0.75rem;
+      padding-top: 0.75rem;
+      border-top: 1px solid var(--color-bg, #f7f5f2);
+    }
+
+    .ia-resumen-box strong {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--color-text-secondary, #6b6b6b);
+      display: block;
+      margin-bottom: 0.25rem;
+    }
+
+    .ia-resumen {
+      margin: 0;
+      font-size: 0.85rem;
+      color: var(--color-text, #3d3d3d);
+      line-height: 1.4;
+      background: var(--color-bg, #f7f5f2);
+      padding: 0.5rem 0.75rem;
+      border-radius: 6px;
     }
 
     .btn-icon {
@@ -837,8 +891,9 @@ export class SolicitudDetailComponent implements OnInit {
     private solicitudService: SolicitudService,
     private usuarioService: UsuarioService,
     private iaService: IaService,
-    private cdr: ChangeDetectorRef
-  ) {}
+    private cdr: ChangeDetectorRef,
+    public authService: AuthService
+  ) { }
 
   ngOnInit(): void {
     this.solicitudId = Number(this.route.snapshot.paramMap.get('id'));
@@ -908,13 +963,13 @@ export class SolicitudDetailComponent implements OnInit {
         if (res.exitoso) {
           this.sugerenciaIA = res.datos;
         } else {
-          this.onError({ error: { mensaje: 'No se pudo obtener sugerencia IA, pero puede continuar manualmente.' }});
+          this.onError({ error: { mensaje: 'No se pudo obtener sugerencia IA, pero puede continuar manualmente.' } });
         }
         this.cdr.markForCheck();
       },
       error: () => {
         // Gracia (Fallback) RF-11
-        this.onError({ error: { mensaje: 'Servicio IA no disponible. La aplicación sigue operando normalmente.' }});
+        this.onError({ error: { mensaje: 'Servicio IA no disponible. La aplicación sigue operando normalmente.' } });
       }
     });
   }
@@ -922,7 +977,9 @@ export class SolicitudDetailComponent implements OnInit {
   aplicarSugerenciaIA(): void {
     if (this.sugerenciaIA) {
       this.clasificarTipo = this.sugerenciaIA.tipoSugerido as TipoSolicitud;
+      this.priorizarPrioridad = this.sugerenciaIA.prioridadSugerida;
       this.clasificarObs = `Sugerencia IA Aplicada. Razón: ${this.sugerenciaIA.razonamiento}`;
+      // También podríamos pre-llenar la observación de prioridad si quisiéramos
     }
   }
 

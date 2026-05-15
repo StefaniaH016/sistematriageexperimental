@@ -39,24 +39,34 @@ import { AuthService } from '../../services/auth.service';
           </svg>
           <span>Solicitudes</span>
         </a>
-        <a routerLink="/solicitudes/nueva" routerLinkActive="active" class="nav-link nav-link-accent">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <circle cx="12" cy="12" r="10"/>
-            <path d="M12 8v8M8 12h8"/>
-          </svg>
-          <span>Nueva</span>
-        </a>
-        <a routerLink="/usuarios" routerLinkActive="active" class="nav-link">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/>
-            <circle cx="9" cy="7" r="4"/>
-            <path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/>
-          </svg>
-          <span>Usuarios</span>
-        </a>
+        @if (authService.currentUserValue?.rol === 'ADMINISTRATIVO') {
+          <a routerLink="/usuarios" routerLinkActive="active" class="nav-link">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/>
+              <circle cx="9" cy="7" r="4"/>
+              <path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/>
+            </svg>
+            <span>Usuarios</span>
+          </a>
+        }
       </div>
 
       <div class="navbar-actions">
+        @if (authService.currentUserValue?.rol === 'ESTUDIANTE') {
+          <a routerLink="/solicitudes/nueva" class="nav-link nav-link-accent mr-2">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"/>
+              <path d="M12 8v8M8 12h8"/>
+            </svg>
+            <span>Nueva Solicitud</span>
+          </a>
+        }
+        <div class="user-profile">
+          <div class="user-info">
+            <span class="user-name">{{ authService.currentUserValue?.nombre }}</span>
+            <span class="user-role">{{ authService.currentUserValue?.rol }}</span>
+          </div>
+        </div>
         <button class="btn-logout" (click)="logout()">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/>
@@ -69,6 +79,37 @@ import { AuthService } from '../../services/auth.service';
     </nav>
   `,
   styles: [`
+    .user-profile {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      margin-right: 1.5rem;
+      padding-right: 1.5rem;
+      border-right: 1px solid var(--color-border, #e0dcd5);
+    }
+
+    .user-info {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+    }
+
+    .user-name {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--color-text, #3d3d3d);
+    }
+
+    .user-role {
+      font-size: 0.7rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--color-primary, #8b7355);
+    }
+    .mr-2 {
+      margin-right: 0.75rem;
+    }
     .navbar {
       background: #ffffff;
       padding: 0.75rem 2rem;
@@ -223,7 +264,7 @@ import { AuthService } from '../../services/auth.service';
   `]
 })
 export class NavbarComponent {
-  constructor(private authService: AuthService) {}
+  constructor(public authService: AuthService) {}
 
   logout(): void {
     this.authService.logout();

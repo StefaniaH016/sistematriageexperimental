@@ -6,141 +6,142 @@ import co.edu.uniquindio.poo.dto.ia.SugerenciaIAResponseDTO;
 import co.edu.uniquindio.poo.model.enums.Prioridad;
 import co.edu.uniquindio.poo.model.enums.TipoSolicitud;
 import lombok.RequiredArgsConstructor;
+import org.json.JSONArray;
+import org.json.JSONObject;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.temporal.ChronoUnit;
 
 /**
- * Servicio de asistencia inteligente para sugerencias de respuesta y clasificación.
- *
- * Esta implementación usa heurísticas locales como base para RF-09/RF-10 y deja
- * preparado el contrato para conectar un LLM real en una fase posterior.
+ * Servicio de asistencia inteligente utilizando la API de Gemini.
+ * Cumple con RF-09 y RF-10 (Asistencia IA opcional).
  */
 @Service
 @RequiredArgsConstructor
 public class AsistenciaIAService {
 
-    private static final String MODELO = "heuristico-local-v1";
+    private static final String MODELO = "gemini-1.5-flash";
+
+    @Value("${gemini.api.key}")
+    private String geminiApiKey;
+
+    @Value("${gemini.api.url}")
+    private String geminiApiUrl;
 
     private final SolicitudService solicitudService;
+    private final RestTemplate restTemplate = new RestTemplate();
 
     public SugerenciaIAResponseDTO obtenerSugerencia(Long solicitudId, SugerenciaIARequestDTO request) {
         SolicitudResponseDTO solicitud = solicitudService.obtenerPorId(solicitudId);
+        
+        String prompt = buildPrompt(solicitud, request != null ? request.getContextoAdicional() : null);
+        String respuestaIARaw = llamarGeminiAPI(prompt);
 
-        TipoSolicitud tipoSugerido = determinarTipoSugerido(solicitud.getDescripcion(), solicitud.getTipoSolicitud());
-        Prioridad prioridadSugerida = determinarPrioridadSugerida(
-                solicitud.getDescripcion(), solicitud.getFechaLimite(), solicitud.getPrioridad());
+        try {
+            // Limpiar posible formato markdown de la respuesta
+            String jsonContent = respuestaIARaw;
+            if (jsonContent.contains("```json")) {
+                jsonContent = jsonContent.substring(jsonContent.indexOf("```json") + 7);
+                if (jsonContent.contains("```")) {
+                    jsonContent = jsonContent.substring(0, jsonContent.indexOf("```"));
+                }
+            } else if (jsonContent.contains("```")) {
+                jsonContent = jsonContent.substring(jsonContent.indexOf("```") + 3);
+                if (jsonContent.contains("```")) {
+                    jsonContent = jsonContent.substring(0, jsonContent.indexOf("```"));
+                }
+            }
+            jsonContent = jsonContent.trim();
 
-        String contextoAdicional = request != null ? request.getContextoAdicional() : null;
-        String justificacion = construirJustificacion(solicitud.getDescripcion(), solicitud.getFechaLimite(), contextoAdicional);
-        String borrador = construirBorradorRespuesta(tipoSugerido, prioridadSugerida, contextoAdicional);
+            JSONObject jsonRes = new JSONObject(jsonContent);
+            
+            return SugerenciaIAResponseDTO.builder()
+                    .solicitudId(solicitud.getId())
+                    .resumen(jsonRes.optString("resumen", "No se pudo generar un resumen."))
+                    .tipoSugerido(jsonRes.optString("tipoSugerido", "CONSULTA_ACADEMICA"))
+                    .prioridadSugerida(jsonRes.optString("prioridadSugerida", "MEDIA"))
+                    .razonamiento(jsonRes.optString("razonamiento", "Análisis basado en la descripción de la solicitud."))
+                    .modeloUtilizado(MODELO)
+                    .generadoEn(LocalDateTime.now())
+                    .build();
 
-        return SugerenciaIAResponseDTO.builder()
-                .solicitudId(solicitud.getId())
-                .sugerenciaRespuesta(borrador)
-                .tipoSolicitudSugerido(tipoSugerido)
-                .prioridadSugerida(prioridadSugerida)
-                .justificacionIA(justificacion)
-                .modeloUtilizado(MODELO)
-                .generadoEn(LocalDateTime.now())
-                .build();
+        } catch (Exception e) {
+            // Fallback en caso de que falle el parseo JSON
+            return SugerenciaIAResponseDTO.builder()
+                    .solicitudId(solicitud.getId())
+                    .resumen(respuestaIARaw)
+                    .tipoSugerido("CONSULTA_ACADEMICA")
+                    .prioridadSugerida("MEDIA")
+                    .razonamiento("Error al procesar respuesta estructurada: " + e.getMessage())
+                    .modeloUtilizado(MODELO)
+                    .generadoEn(LocalDateTime.now())
+                    .build();
+        }
     }
 
     public SugerenciaIAResponseDTO obtenerClasificacionSugerida(Long solicitudId) {
-        SolicitudResponseDTO solicitud = solicitudService.obtenerPorId(solicitudId);
-
-        TipoSolicitud tipoSugerido = determinarTipoSugerido(solicitud.getDescripcion(), solicitud.getTipoSolicitud());
-        Prioridad prioridadSugerida = determinarPrioridadSugerida(
-                solicitud.getDescripcion(), solicitud.getFechaLimite(), solicitud.getPrioridad());
-
-        return SugerenciaIAResponseDTO.builder()
-                .solicitudId(solicitud.getId())
-                .tipoSolicitudSugerido(tipoSugerido)
-                .prioridadSugerida(prioridadSugerida)
-                .justificacionIA(construirJustificacion(solicitud.getDescripcion(), solicitud.getFechaLimite(), null))
-                .modeloUtilizado(MODELO)
-                .generadoEn(LocalDateTime.now())
-                .build();
+        return obtenerSugerencia(solicitudId, null);
     }
 
-    private TipoSolicitud determinarTipoSugerido(String descripcion, TipoSolicitud tipoActual) {
-        if (tipoActual != null) {
-            return tipoActual;
-        }
+    private String llamarGeminiAPI(String prompt) {
+        try {
+            String url = geminiApiUrl + "?key=" + geminiApiKey;
+            
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
 
-        String texto = normalizar(descripcion);
-        if (texto.contains("homolog")) {
-            return TipoSolicitud.HOMOLOGACION;
+            JSONObject body = new JSONObject();
+            JSONArray contents = new JSONArray();
+            JSONObject content = new JSONObject();
+            JSONArray parts = new JSONArray();
+            JSONObject part = new JSONObject();
+            
+            part.put("text", prompt);
+            parts.put(part);
+            content.put("parts", parts);
+            contents.put(content);
+            body.put("contents", contents);
+
+            HttpEntity<String> requestEntity = new HttpEntity<>(body.toString(), headers);
+            String response = restTemplate.postForObject(url, requestEntity, String.class);
+            
+            JSONObject jsonResponse = new JSONObject(response);
+            return jsonResponse.getJSONArray("candidates")
+                    .getJSONObject(0)
+                    .getJSONObject("content")
+                    .getJSONArray("parts")
+                    .getJSONObject(0)
+                    .getString("text");
+                    
+        } catch (Exception e) {
+            return "Error al contactar a Gemini: " + e.getMessage();
         }
-        if (texto.contains("cancel") || texto.contains("retiro")) {
-            return TipoSolicitud.CANCELACION_ASIGNATURAS;
-        }
-        if (texto.contains("cupo") || texto.contains("sobrecupo")) {
-            return TipoSolicitud.SOLICITUD_CUPOS;
-        }
-        if (texto.contains("registro") || texto.contains("matricula")) {
-            return TipoSolicitud.REGISTRO_ASIGNATURAS;
-        }
-        return TipoSolicitud.CONSULTA_ACADEMICA;
     }
 
-    private Prioridad determinarPrioridadSugerida(String descripcion, LocalDate fechaLimite, Prioridad prioridadActual) {
-        if (prioridadActual != null) {
-            return prioridadActual;
-        }
-
-        String texto = normalizar(descripcion);
-        if (fechaLimite != null) {
-            long dias = ChronoUnit.DAYS.between(LocalDate.now(), fechaLimite);
-            if (dias <= 2) {
-                return Prioridad.CRITICA;
-            }
-            if (dias <= 5) {
-                return Prioridad.ALTA;
-            }
-        }
-
-        if (texto.contains("urgente") || texto.contains("inminente") || texto.contains("hoy")) {
-            return Prioridad.ALTA;
-        }
-        if (texto.contains("matricula") || texto.contains("cierre")) {
-            return Prioridad.MEDIA;
-        }
-        return Prioridad.BAJA;
-    }
-
-    private String construirJustificacion(String descripcion, LocalDate fechaLimite, String contextoAdicional) {
-        StringBuilder justificacion = new StringBuilder("Sugerencia generada por análisis semántico de la descripción");
-
-        if (fechaLimite != null) {
-            long dias = ChronoUnit.DAYS.between(LocalDate.now(), fechaLimite);
-            justificacion.append(" y cercanía de fecha límite (").append(dias).append(" días)");
-        }
-
-        if (contextoAdicional != null && !contextoAdicional.isBlank()) {
-            justificacion.append(". Se incorporó contexto adicional proporcionado por el actor");
-        }
-
-        justificacion.append(".");
-        return justificacion.toString();
-    }
-
-    private String construirBorradorRespuesta(TipoSolicitud tipo, Prioridad prioridad, String contextoAdicional) {
-        StringBuilder borrador = new StringBuilder("Estimado(a) estudiante, su solicitud ha sido analizada preliminarmente. ");
-        borrador.append("Tipo sugerido: ").append(tipo.getDescripcion()).append(". ");
-        borrador.append("Prioridad sugerida: ").append(prioridad.getDescripcion()).append(". ");
-        borrador.append("Un responsable revisará el caso y le notificará los siguientes pasos.");
-
-        if (contextoAdicional != null && !contextoAdicional.isBlank()) {
-            borrador.append(" Se tuvo en cuenta el contexto adicional informado para orientar esta sugerencia.");
-        }
-
-        return borrador.toString();
-    }
-
-    private String normalizar(String texto) {
-        return texto == null ? "" : texto.toLowerCase();
+    private String buildPrompt(SolicitudResponseDTO solicitud, String contexto) {
+        return "Actúa como un asistente académico experto de la Universidad. Analiza la siguiente solicitud de un estudiante y genera una respuesta estructurada estrictamente en formato JSON.\n\n" +
+               "DETALLES DE LA SOLICITUD:\n" +
+               "- Título: " + solicitud.getTitulo() + "\n" +
+               "- Descripción: " + solicitud.getDescripcion() + "\n" +
+               "- Fecha límite solicitada: " + (solicitud.getFechaLimite() != null ? solicitud.getFechaLimite() : "Ninguna") + "\n" +
+               (contexto != null ? "- Contexto adicional del administrativo: " + contexto + "\n" : "") +
+               "\nREQUISITOS DE SALIDA:\n" +
+               "Debes responder ÚNICAMENTE con un objeto JSON (sin texto adicional fuera del JSON) con los siguientes campos:\n" +
+               "1. \"resumen\": Un borrador de respuesta formal, cordial y profesional para el estudiante.\n" +
+               "2. \"tipoSugerido\": Clasificación de la solicitud. Debe ser uno de: [REGISTRO_ASIGNATURAS, CANCELACION_ASIGNATURAS, HOMOLOGACION, SOLICITUD_CUPOS, CONSULTA_ACADEMICA].\n" +
+               "3. \"prioridadSugerida\": Nivel de urgencia. Debe ser uno de: [ALTA, MEDIA, BAJA].\n" +
+               "4. \"razonamiento\": Una breve justificación técnica de por qué elegiste ese tipo y prioridad.\n" +
+               "\nEJEMPLO DE FORMATO:\n" +
+               "{\n" +
+               "  \"resumen\": \"Cordial saludo, hemos recibido su solicitud de cupos...\",\n" +
+               "  \"tipoSugerido\": \"SOLICITUD_CUPOS\",\n" +
+               "  \"prioridadSugerida\": \"MEDIA\",\n" +
+               "  \"razonamiento\": \"La solicitud trata sobre falta de cupos en asignaturas de cuarto semestre.\"\n" +
+               "}";
     }
 }
