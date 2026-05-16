@@ -1,0 +1,160 @@
+<div class="dashboard">
+  <header class="page-header">
+    <div>
+      <h1 class="page-title">Dashboard</h1>
+      <p class="page-subtitle">Resumen del sistema de solicitudes académicas</p>
+    </div>
+    <div class="header-actions">
+      <button class="btn-refresh" (click)="cargar()" [disabled]="cargando" title="Actualizar datos">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" [class.spinning]="cargando">
+          <path d="M23 4v6h-6"/>
+          <path d="M1 20v-6h6"/>
+          <path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/>
+        </svg>
+        {{ cargando ? 'Actualizando...' : 'Actualizar' }}
+      </button>
+    </div>
+  </header>
+
+  <!-- Stats Cards -->
+  <div class="stats-grid">
+    <div class="stat-card" (click)="null">
+      <div class="stat-icon registrada">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
+          <polyline points="7,10 12,15 17,10"/>
+          <line x1="12" y1="15" x2="12" y2="3"/>
+        </svg>
+      </div>
+      <div class="stat-content">
+        <div class="stat-number">{{ contarPorEstado('REGISTRADA') }}</div>
+        <div class="stat-label">Registradas</div>
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-icon clasificada">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z"/>
+          <line x1="7" y1="7" x2="7.01" y2="7"/>
+        </svg>
+      </div>
+      <div class="stat-content">
+        <div class="stat-number">{{ contarPorEstado('CLASIFICADA') }}</div>
+        <div class="stat-label">Clasificadas</div>
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-icon en-atencion">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10"/>
+          <polyline points="12,6 12,12 16,14"/>
+        </svg>
+      </div>
+      <div class="stat-content">
+        <div class="stat-number">{{ contarPorEstado('EN_ATENCION') }}</div>
+        <div class="stat-label">En Atención</div>
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-icon atendida">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M22 11.08V12a10 10 0 11-5.93-9.14"/>
+          <polyline points="22,4 12,14.01 9,11.01"/>
+        </svg>
+      </div>
+      <div class="stat-content">
+        <div class="stat-number">{{ contarPorEstado('ATENDIDA') }}</div>
+        <div class="stat-label">Atendidas</div>
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-icon cerrada">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+          <path d="M7 11V7a5 5 0 0110 0v4"/>
+        </svg>
+      </div>
+      <div class="stat-content">
+        <div class="stat-number">{{ contarPorEstado('CERRADA') }}</div>
+        <div class="stat-label">Cerradas</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Content Grid -->
+  <div class="content-grid">
+    <!-- Priority Distribution -->
+    <div class="card">
+      <div class="card-header">
+        <h2>Distribución por Prioridad</h2>
+      </div>
+      <div class="card-body">
+        <div class="priority-list">
+          @for (p of prioridades; track p) {
+            <div class="priority-item">
+              <div class="priority-info">
+                <span class="priority-dot" [class]="'dot-' + p.toLowerCase()"></span>
+                <span class="priority-name">{{ prioridadLabel(p) }}</span>
+              </div>
+              <div class="priority-bar-container">
+                <div class="priority-bar" [class]="'bar-' + p.toLowerCase()"
+                  [style.width.%]="getBarWidth(p)">
+                </div>
+              </div>
+              <span class="priority-count">{{ contarPorPrioridad(p) }}</span>
+            </div>
+          }
+        </div>
+        
+        @if (solicitudes.length === 0) {
+          <div class="empty-state">
+            <p>No hay datos disponibles</p>
+          </div>
+        }
+      </div>
+    </div>
+
+    <!-- Recent Requests -->
+    <div class="card">
+      <div class="card-header">
+        <h2>Solicitudes Recientes</h2>
+        <a routerLink="/solicitudes" class="view-all">Ver todas →</a>
+      </div>
+      <div class="card-body">
+        @if (solicitudes.length === 0) {
+          <div class="empty-state">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/>
+              <rect x="9" y="3" width="6" height="4" rx="1"/>
+            </svg>
+            <p>No hay solicitudes registradas</p>
+            @if (authService.currentUserValue?.rol === 'ESTUDIANTE') {
+              <a routerLink="/solicitudes/nueva" class="btn-link">Crear primera solicitud</a>
+            }
+          </div>
+        } @else {
+          <div class="recent-list">
+            @for (s of ultimasSolicitudes; track s.id) {
+              <a [routerLink]="['/solicitudes', s.id]" class="recent-item">
+                <div class="recent-main">
+                  <span class="recent-id">#{{ s.id }}</span>
+                  <span class="recent-title">{{ s.titulo }}</span>
+                </div>
+                <div class="recent-details">
+                  <span class="badge" [class]="'badge-' + s.estado.toLowerCase()">
+                    {{ estadoLabel(s.estado) }}
+                  </span>
+                  <span class="recent-date">{{ s.fechaCreacion | date:'dd/MM/yy' }}</span>
+                </div>
+              </a>
+            }
+          </div>
+        }
+      </div>
+    </div>
+  </div>
+</div>

@@ -14,7 +14,6 @@ import org.springframework.security.config.annotation.authentication.configurati
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
-import org.springframework.security.config.annotation.web.configurers.HeadersConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -47,14 +46,16 @@ public class SecurityConfig {
                         // Rutas públicas
                         .requestMatchers("/api").permitAll()
                         .requestMatchers("/favicon.ico").permitAll()
-                        .requestMatchers("/swagger-ui/**", "/api-docs/**", "/swagger-ui.html", "/v3/api-docs/**").permitAll()
+                        .requestMatchers("/swagger-ui/**", "/api-docs/**", "/swagger-ui.html", "/v3/api-docs/**")
+                        .permitAll()
                         .requestMatchers("/api/auth/**").permitAll()
 
                         // RF-13: Autorización por roles
                         // Solicitudes - acceso más flexible para desarrollo
                         .requestMatchers(HttpMethod.POST, "/api/solicitudes").authenticated()
                         .requestMatchers(HttpMethod.GET, "/api/solicitudes/**").authenticated()
-                        .requestMatchers(HttpMethod.PUT, "/api/solicitudes/**").hasAnyRole("ADMINISTRATIVO", "RESPONSABLE")
+                        .requestMatchers(HttpMethod.PUT, "/api/solicitudes/**")
+                        .hasAnyRole("ADMINISTRATIVO", "RESPONSABLE")
 
                         // Usuarios - acceso más flexible para desarrollo
                         .requestMatchers(HttpMethod.POST, "/api/usuarios").hasRole("ADMINISTRATIVO")
@@ -66,12 +67,10 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/api/ia/**").authenticated()
 
                         // Cualquier otra petición requiere autenticación
-                        .anyRequest().authenticated()
-                )
+                        .anyRequest().authenticated())
                 // Configuración stateless para JWT (sin sesiones)
                 .sessionManagement(session -> session
-                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-                )
+                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 // Agregar el filtro JWT antes del filtro de autenticación estándar
                 .authenticationProvider(authenticationProvider())
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);

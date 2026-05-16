@@ -1,9 +1,6 @@
 package co.edu.uniquindio.poo.service;
 
-import co.edu.uniquindio.poo.dto.common.*;
 import co.edu.uniquindio.poo.dto.solicitud.*;
-import co.edu.uniquindio.poo.dto.usuario.*;
-import co.edu.uniquindio.poo.dto.ia.*;
 import co.edu.uniquindio.poo.dto.historial.HistorialResponseDTO;
 import co.edu.uniquindio.poo.dto.common.PageResponseDTO;
 import co.edu.uniquindio.poo.dto.solicitud.SolicitudResponseDTO;
@@ -28,7 +25,8 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 /**
- * Servicio principal para la gestión del ciclo de vida completo de las solicitudes académicas.
+ * Servicio principal para la gestión del ciclo de vida completo de las
+ * solicitudes académicas.
  * 
  * Implementa los siguientes requisitos funcionales:
  * RF-01: Registro de solicitudes académicas
@@ -57,10 +55,11 @@ public class SolicitudService {
     /**
      * Registra una nueva solicitud académica en el sistema.
      * RF-01: Almacena descripción, canal de origen, fecha/hora y solicitante.
-     * El estado inicial es REGISTRADA y se genera la primera entrada en el historial.
+     * El estado inicial es REGISTRADA y se genera la primera entrada en el
+     * historial.
      */
     public SolicitudResponseDTO registrarSolicitud(SolicitudRequestDTO request) {
-        
+
         Usuario actorActual = actorContextService.obtenerActorActual();
         Usuario solicitante;
 
@@ -68,7 +67,8 @@ public class SolicitudService {
             if (actorActual.getRol() == co.edu.uniquindio.poo.model.enums.Rol.ADMINISTRATIVO) {
                 solicitante = usuarioService.buscarUsuarioPorId(request.getSolicitanteId());
             } else {
-                throw new co.edu.uniquindio.poo.exception.OperacionNoPermitidaException("No tiene permisos para registrar una solicitud a nombre de otro usuario.");
+                throw new co.edu.uniquindio.poo.exception.OperacionNoPermitidaException(
+                        "No tiene permisos para registrar una solicitud a nombre de otro usuario.");
             }
         } else {
             solicitante = actorActual;
@@ -92,8 +92,7 @@ public class SolicitudService {
         HistorialSolicitud historial = crearEntradaHistorial(
                 solicitud, solicitante,
                 "Solicitud registrada",
-                "Solicitud creada a través del canal: " + request.getCanalOrigen().getDescripcion()
-        );
+                "Solicitud creada a través del canal: " + request.getCanalOrigen().getDescripcion());
         solicitud.agregarHistorial(historial);
 
         solicitud = solicitudRepository.save(solicitud);
@@ -113,7 +112,8 @@ public class SolicitudService {
 
         // RF-02: Validar que el tipo de solicitud no sea nulo ni vacío
         if (request.getTipoSolicitud() == null || request.getTipoSolicitud().trim().isEmpty()) {
-            throw new co.edu.uniquindio.poo.exception.OperacionNoPermitidaException("El tipo de solicitud es obligatorio para realizar la clasificación (RF-02).");
+            throw new co.edu.uniquindio.poo.exception.OperacionNoPermitidaException(
+                    "El tipo de solicitud es obligatorio para realizar la clasificación (RF-02).");
         }
 
         // RF-08: Verificar que no esté cerrada
@@ -128,18 +128,16 @@ public class SolicitudService {
         // RF-03: Calcular prioridad automáticamente basada en reglas
         Object[] resultado = priorizacionService.calcularPrioridad(solicitud);
         solicitud.clasificar(
-            request.getTipoSolicitud(),
-            (Prioridad) resultado[0],
-            (String) resultado[1]
-        );
+                request.getTipoSolicitud(),
+                (Prioridad) resultado[0],
+                (String) resultado[1]);
 
         // RF-06: Registrar en historial
         HistorialSolicitud historial = crearEntradaHistorial(
                 solicitud, usuario,
                 "Solicitud clasificada como: " + request.getTipoSolicitud(),
                 request.getObservaciones() != null ? request.getObservaciones()
-                        : "Prioridad asignada: " + solicitud.getPrioridad().getDescripcion()
-        );
+                        : "Prioridad asignada: " + solicitud.getPrioridad().getDescripcion());
         solicitud.agregarHistorial(historial);
 
         solicitud = solicitudRepository.save(solicitud);
@@ -164,7 +162,8 @@ public class SolicitudService {
         }
 
         if (request.getJustificacion() == null || request.getJustificacion().trim().isEmpty()) {
-            throw new co.edu.uniquindio.poo.exception.OperacionNoPermitidaException("La justificación es obligatoria para cambios manuales de prioridad (RF-03).");
+            throw new co.edu.uniquindio.poo.exception.OperacionNoPermitidaException(
+                    "La justificación es obligatoria para cambios manuales de prioridad (RF-03).");
         }
 
         Prioridad prioridadAnterior = solicitud.getPrioridad();
@@ -172,12 +171,12 @@ public class SolicitudService {
 
         // RF-06: Registrar en historial
         String accion = prioridadAnterior != null
-                ? "Prioridad cambiada de " + prioridadAnterior.getDescripcion() + " a " + request.getPrioridad().getDescripcion()
+                ? "Prioridad cambiada de " + prioridadAnterior.getDescripcion() + " a "
+                        + request.getPrioridad().getDescripcion()
                 : "Prioridad asignada: " + request.getPrioridad().getDescripcion();
 
         HistorialSolicitud historial = crearEntradaHistorial(
-                solicitud, usuario, accion, request.getJustificacion()
-        );
+                solicitud, usuario, accion, request.getJustificacion());
         solicitud.agregarHistorial(historial);
 
         solicitud = solicitudRepository.save(solicitud);
@@ -203,9 +202,9 @@ public class SolicitudService {
         // RF-06: Registrar en historial
         HistorialSolicitud historial = crearEntradaHistorial(
                 solicitud, usuario,
-                "Estado cambiado de " + estadoAnterior.getDescripcion() + " a " + request.getNuevoEstado().getDescripcion(),
-                request.getObservaciones()
-        );
+                "Estado cambiado de " + estadoAnterior.getDescripcion() + " a "
+                        + request.getNuevoEstado().getDescripcion(),
+                request.getObservaciones());
         solicitud.agregarHistorial(historial);
 
         solicitud = solicitudRepository.save(solicitud);
@@ -244,8 +243,7 @@ public class SolicitudService {
         HistorialSolicitud historial = crearEntradaHistorial(
                 solicitud, asignador,
                 "Responsable asignado: " + responsable.getNombreCompleto(),
-                request.getObservaciones()
-        );
+                request.getObservaciones());
         solicitud.agregarHistorial(historial);
 
         solicitud = solicitudRepository.save(solicitud);
@@ -256,7 +254,8 @@ public class SolicitudService {
 
     /**
      * Cierra una solicitud.
-     * RF-08: Solo se puede cerrar si está ATENDIDA y se requiere observación de cierre.
+     * RF-08: Solo se puede cerrar si está ATENDIDA y se requiere observación de
+     * cierre.
      * Una vez cerrada, no puede ser modificada.
      */
     public SolicitudResponseDTO cerrarSolicitud(Long solicitudId, CierreRequestDTO request) {
@@ -264,12 +263,14 @@ public class SolicitudService {
         Usuario administrativo = actorContextService.obtenerActorActual();
 
         if (request.getObservacionCierre() == null || request.getObservacionCierre().trim().isEmpty()) {
-            throw new co.edu.uniquindio.poo.exception.OperacionNoPermitidaException("La observación de cierre es obligatoria (RF-08).");
+            throw new co.edu.uniquindio.poo.exception.OperacionNoPermitidaException(
+                    "La observación de cierre es obligatoria (RF-08).");
         }
 
         // RF-08: Verificar que la solicitud esté en estado ATENDIDA
         if (solicitud.getEstado() != EstadoSolicitud.ATENDIDA) {
-            throw new co.edu.uniquindio.poo.exception.OperacionNoPermitidaException("Solo se pueden cerrar solicitudes en estado ATENDIDA.");
+            throw new co.edu.uniquindio.poo.exception.OperacionNoPermitidaException(
+                    "Solo se pueden cerrar solicitudes en estado ATENDIDA.");
         }
 
         // Aplicar cierre
@@ -279,8 +280,7 @@ public class SolicitudService {
         HistorialSolicitud historial = crearEntradaHistorial(
                 solicitud, administrativo,
                 "Solicitud cerrada",
-                request.getObservacionCierre()
-        );
+                request.getObservacionCierre());
         solicitud.agregarHistorial(historial);
 
         solicitud = solicitudRepository.save(solicitud);
@@ -307,7 +307,8 @@ public class SolicitudService {
     }
 
     /**
-     * RF-07: Consulta solicitudes según criterios: estado, tipo, prioridad, responsable.
+     * RF-07: Consulta solicitudes según criterios: estado, tipo, prioridad,
+     * responsable.
      */
     @Transactional(readOnly = true)
     public List<SolicitudResponseDTO> consultarConFiltros(
@@ -368,11 +369,11 @@ public class SolicitudService {
                 .collect(java.util.stream.Collectors.toList());
     }
 
-        /**
-         * RF-07: Consulta paginada con filtros opcionales.
-         */
-        @Transactional(readOnly = true)
-        public PageResponseDTO<SolicitudResponseDTO> consultarConFiltrosPaginado(
+    /**
+     * RF-07: Consulta paginada con filtros opcionales.
+     */
+    @Transactional(readOnly = true)
+    public PageResponseDTO<SolicitudResponseDTO> consultarConFiltrosPaginado(
             EstadoSolicitud estado,
             String tipo,
             Prioridad prioridad,
@@ -380,30 +381,28 @@ public class SolicitudService {
             int page,
             int size,
             String sortBy,
-            String direction
-        ) {
+            String direction) {
         String campoOrden = (sortBy == null || sortBy.isBlank()) ? "fechaRegistro" : sortBy;
         Sort sort = "asc".equalsIgnoreCase(direction)
-            ? Sort.by(campoOrden).ascending()
-            : Sort.by(campoOrden).descending();
+                ? Sort.by(campoOrden).ascending()
+                : Sort.by(campoOrden).descending();
 
         int pagina = Math.max(page, 0);
         int tamano = size <= 0 ? 10 : Math.min(size, 100);
 
         Pageable pageable = PageRequest.of(pagina, tamano, sort);
         Page<Solicitud> resultado = solicitudRepository.buscarConFiltrosPaginado(
-            estado, tipo, prioridad, responsableId, pageable
-        );
+                estado, tipo, prioridad, responsableId, pageable);
 
         return PageResponseDTO.<SolicitudResponseDTO>builder()
-            .contenido(mapper.toSolicitudDTOList(resultado.getContent()))
-            .numeroPagina(resultado.getNumber())
-            .tamanoPagina(resultado.getSize())
-            .totalElementos(resultado.getTotalElements())
-            .totalPaginas(resultado.getTotalPages())
-            .ultimaPagina(resultado.isLast())
-            .build();
-        }
+                .contenido(mapper.toSolicitudDTOList(resultado.getContent()))
+                .numeroPagina(resultado.getNumber())
+                .tamanoPagina(resultado.getSize())
+                .totalElementos(resultado.getTotalElements())
+                .totalPaginas(resultado.getTotalPages())
+                .ultimaPagina(resultado.isLast())
+                .build();
+    }
 
     // ==================== MÉTODOS UTILITARIOS PRIVADOS ====================
 
@@ -452,7 +451,7 @@ public class SolicitudService {
      * RF-06: Crea una entrada de historial con los datos requeridos.
      */
     private HistorialSolicitud crearEntradaHistorial(Solicitud solicitud, Usuario usuario,
-                                                      String accion, String observaciones) {
+            String accion, String observaciones) {
         return HistorialSolicitud.builder()
                 .solicitud(solicitud)
                 .fechaHora(LocalDateTime.now())

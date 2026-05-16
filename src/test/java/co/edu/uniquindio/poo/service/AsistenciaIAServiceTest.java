@@ -3,7 +3,6 @@ package co.edu.uniquindio.poo.service;
 import co.edu.uniquindio.poo.dto.solicitud.SolicitudResponseDTO;
 import co.edu.uniquindio.poo.dto.ia.SugerenciaIAResponseDTO;
 import co.edu.uniquindio.poo.model.enums.Prioridad;
-import co.edu.uniquindio.poo.model.enums.TipoSolicitud;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -32,8 +31,8 @@ class AsistenciaIAServiceTest {
     private SolicitudService solicitudService;
 
     private SolicitudResponseDTO crearSolicitudMock(Long id, String descripcion,
-                                                     String tipo, Prioridad prioridad,
-                                                     LocalDate fechaLimite) {
+            String tipo, Prioridad prioridad,
+            LocalDate fechaLimite) {
         return SolicitudResponseDTO.builder()
                 .id(id)
                 .descripcion(descripcion)

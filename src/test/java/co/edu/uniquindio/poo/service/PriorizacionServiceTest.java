@@ -2,7 +2,6 @@ package co.edu.uniquindio.poo.service;
 
 import co.edu.uniquindio.poo.model.entity.Solicitud;
 import co.edu.uniquindio.poo.model.enums.Prioridad;
-import co.edu.uniquindio.poo.model.enums.TipoSolicitud;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -13,7 +12,8 @@ import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * Tests para el motor de reglas de priorización.
- * RF-03: Priorización basada en tipo de solicitud, impacto académico y fecha límite.
+ * RF-03: Priorización basada en tipo de solicitud, impacto académico y fecha
+ * límite.
  */
 class PriorizacionServiceTest {
 

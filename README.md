@@ -20,7 +20,24 @@ Antes de ejecutar el proyecto, asegúrate de tener instalados los siguientes pro
 1. **Java Development Kit (JDK) 17**: Configurado en tus variables de entorno (`JAVA_HOME`).
 2. **Maven**: Para compilar el backend.
 3. **Node.js (versión 18 o superior)**: Para compilar y levantar Angular.
-4. **XAMPP / WampServer o MariaDB Server**: Para levantar el motor de base de datos relacional.
+4. **MariaDB Server y HeidiSQL**: Para levantar y administrar el motor de base de datos relacional.
+
+---
+
+## 🔑 Variables de Entorno (¡FUNDAMENTAL ANTES DE EJECUTAR!)
+
+Para mantener la seguridad del sistema y no exponer credenciales en el código, es **estrictamente necesario** configurar las siguientes variables de entorno en tu sistema (o en la terminal) antes de levantar el backend:
+
+- `DB_PASSWORD`: Contraseña de tu usuario en MariaDB (por defecto el usuario es `root`).
+- `JWT_SECRET`: Una cadena de texto segura (preferiblemente codificada en Base64) usada para firmar los tokens de autenticación.
+- `GEMINI_API_KEY`: Tu clave de API para Google Gemini, que puedes obtener en [Google AI Studio](https://aistudio.google.com/).
+
+**Ejemplo de cómo asignarlas temporalmente en Windows (PowerShell):**
+```powershell
+$env:DB_PASSWORD="tu_password_de_mariadb"
+$env:JWT_SECRET="tu_secreto_jwt_en_base64_muy_seguro_y_largo_aqui="
+$env:GEMINI_API_KEY="tu_clave_de_gemini"
+```
 
 ---
 
@@ -30,45 +47,28 @@ Sigue **exactamente** este orden para garantizar que el ecosistema completo se l
 
 ### PASO 1: Preparación de la Base de Datos (MariaDB)
 El proyecto utiliza MariaDB en lugar de una base en memoria para garantizar persistencia profesional.
-1. Abre el panel de control de tu gestor (ej. XAMPP) y haz clic en **Start** en el módulo de *MySQL/MariaDB*.
-2. Entra a tu administrador de bases de datos preferido (phpMyAdmin en `http://localhost/phpmyadmin`, DBeaver, o HeidiSQL).
+1. Abre tu servidor MariaDB.
+2. Entra a tu administrador de bases de datos (**HeidiSQL**).
 3. Ejecuta el siguiente comando SQL para crear el esquema vacío:
    ```sql
    CREATE DATABASE solicitudesdb;
    ```
-4. **Configuración de Credenciales**: Por defecto, el proyecto intentará conectarse usando el usuario `root` y la contraseña `root`. 
-   - **¡IMPORTANTE!** Si usas XAMPP estándar, normalmente el usuario es `root` pero la **contraseña es vacía**.
-   - Para corregir esto, abre el archivo en el proyecto: `src/main/resources/application.properties`
-   - Modifica la línea de la contraseña para que quede vacía, de esta forma:
-     ```properties
-     spring.datasource.username=root
-     spring.datasource.password=
-     ```
 
-### PASO 2: Configuración de Inteligencia Artificial (Gemini)
-El sistema se conecta a la red de IA de Google para sugerir clasificaciones y borradores.
-
-**Recomendación de Seguridad**: Para evitar subir tu clave al repositorio, el proyecto está configurado para leer la clave desde una **variable de entorno**.
-
-1. Obtén tu clave en [Google AI Studio](https://aistudio.google.com/).
-2. **Configuración en Windows (PowerShell)**:
-   ```powershell
-   $env:GEMINI_API_KEY="tu_clave_aqui"
-
-### PASO 3: Despliegue del Backend (Spring Boot)
+### PASO 2: Despliegue del Backend (Spring Boot)
 1. Abre una terminal (Símbolo del sistema, PowerShell o la terminal de tu IDE) ubicada en la **carpeta principal** del repositorio (donde está el `pom.xml`).
-2. Limpia, descarga dependencias y compila el proyecto ejecutando:
+2. **Asegúrate de que las variables de entorno están asignadas** en esa misma terminal.
+3. Limpia, descarga dependencias y compila el proyecto ejecutando:
    ```bash
    mvn clean install -DskipTests
    ```
-3. Una vez termine exitosamente, inicia el servidor ejecutando:
+4. Una vez termine exitosamente, inicia el servidor ejecutando:
    ```bash
    mvn spring-boot:run
    ```
-4. Espera a que la consola muestre el mensaje de que Tomcat ha iniciado en el puerto `8080`.
+5. Espera a que la consola muestre el mensaje de que Tomcat ha iniciado en el puerto `8080`.
    *(Nota: En su primer arranque, Hibernate creará todas las tablas en MariaDB automáticamente gracias a `ddl-auto=update`, y el sistema inyectará unos usuarios de prueba).*
 
-### PASO 4: Despliegue del Frontend Visual (Angular)
+### PASO 3: Despliegue del Frontend Visual (Angular)
 1. Sin cerrar la terminal del Backend, abre una **segunda terminal** nueva.
 2. Navega hacia adentro de la carpeta del frontend:
    ```bash
@@ -85,7 +85,7 @@ El sistema se conecta a la red de IA de Google para sugerir clasificaciones y bo
 5. Espera a que el compilador termine. Abre tu navegador web favorito y entra a:
    👉 **[http://localhost:4200](http://localhost:4200)**
 
-Verás en pantalla el **Sistema de Triage Académico** con su diseño premium oscuro y animación de entrada.
+Verás en pantalla el **Sistema de Triage Académico** con su diseño premium oscuro y animación de entrada, una belleza
 
 ---
 

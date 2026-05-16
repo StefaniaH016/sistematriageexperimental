@@ -1,16 +1,12 @@
 package co.edu.uniquindio.poo.controller;
 
-import co.edu.uniquindio.poo.dto.common.*;
 import co.edu.uniquindio.poo.dto.solicitud.*;
-import co.edu.uniquindio.poo.dto.usuario.*;
-import co.edu.uniquindio.poo.dto.ia.*;
 import co.edu.uniquindio.poo.dto.common.ApiResponseDTO;
 import co.edu.uniquindio.poo.dto.historial.HistorialResponseDTO;
 import co.edu.uniquindio.poo.dto.common.PageResponseDTO;
 import co.edu.uniquindio.poo.dto.solicitud.SolicitudResponseDTO;
 import co.edu.uniquindio.poo.model.enums.EstadoSolicitud;
 import co.edu.uniquindio.poo.model.enums.Prioridad;
-import co.edu.uniquindio.poo.model.enums.TipoSolicitud;
 import co.edu.uniquindio.poo.service.SolicitudService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;

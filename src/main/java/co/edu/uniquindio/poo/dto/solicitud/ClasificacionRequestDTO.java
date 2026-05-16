@@ -1,6 +1,5 @@
 package co.edu.uniquindio.poo.dto.solicitud;
 
-import co.edu.uniquindio.poo.model.enums.TipoSolicitud;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
 

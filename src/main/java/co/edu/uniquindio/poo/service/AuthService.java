@@ -32,14 +32,14 @@ public class AuthService {
         // Autenticar con Spring Security
         authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
-                        request.getEmail(),
-                        request.getPassword()
+                        request.email(),
+                        request.password()
                 )
         );
 
         // Buscar el usuario en la base de datos
-        Usuario usuario = usuarioRepository.findByEmail(request.getEmail())
-                .or(() -> usuarioRepository.findByIdentificacion(request.getEmail()))
+        Usuario usuario = usuarioRepository.findByEmail(request.email())
+                .or(() -> usuarioRepository.findByIdentificacion(request.email()))
                 .orElseThrow(() -> new UsernameNotFoundException("Usuario no encontrado"));
 
         // Crear UserDetails para generar el token

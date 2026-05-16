@@ -3,7 +3,6 @@ package co.edu.uniquindio.poo.controller;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import java.util.Map;
 
@@ -17,11 +16,10 @@ public class ApiController {
     @GetMapping("/api")
     public Map<String, String> index() {
         return Map.of(
-            "name", "Sistema de Triage y Gestión de Solicitudes Académicas API",
-            "version", "1.0",
-            "status", "Running",
-            "docs", "/swagger-ui.html"
-        );
+                "name", "Sistema de Triage y Gestión de Solicitudes Académicas API",
+                "version", "1.0",
+                "status", "Running",
+                "docs", "/swagger-ui.html");
     }
 
     /**
