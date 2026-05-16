@@ -102,4 +102,22 @@ public class UsuarioController {
         UsuarioResponseDTO response = usuarioService.activarUsuario(id);
         return ResponseEntity.ok(ApiResponseDTO.exitoso("Usuario activado", response));
     }
+
+    /**
+     * Actualiza un usuario.
+     */
+    @PutMapping("/{id}")
+    public ResponseEntity<ApiResponseDTO<UsuarioResponseDTO>> actualizarUsuario(@PathVariable Long id, @Valid @RequestBody UsuarioRequestDTO request) {
+        UsuarioResponseDTO response = usuarioService.actualizarUsuario(id, request);
+        return ResponseEntity.ok(ApiResponseDTO.exitoso("Usuario actualizado", response));
+    }
+
+    /**
+     * Elimina lógicamente (desactiva) un usuario (Mapeo adicional para el frontend).
+     */
+    @DeleteMapping("/{id}")
+    public ResponseEntity<ApiResponseDTO<Void>> eliminarUsuario(@PathVariable Long id) {
+        usuarioService.desactivarUsuario(id);
+        return ResponseEntity.ok(ApiResponseDTO.exitoso("Usuario desactivado correctamente", null));
+    }
 }

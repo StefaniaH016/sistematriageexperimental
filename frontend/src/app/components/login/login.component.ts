@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -24,12 +24,13 @@ export class LoginComponent {
   errorMensaje = '';
   exitoMensaje = '';
 
-  constructor(private authService: AuthService, private router: Router) { }
+  constructor(private authService: AuthService, private router: Router, private cdr: ChangeDetectorRef) { }
 
   toggleMode() {
     this.isLogin = !this.isLogin;
     this.errorMensaje = '';
     this.exitoMensaje = '';
+    this.cdr.detectChanges();
   }
 
   submit() {
@@ -37,23 +38,34 @@ export class LoginComponent {
     this.exitoMensaje = '';
     if (this.isLogin) {
       this.authService.login(this.credenciales.email, this.credenciales.password).subscribe({
-        next: () => {
-          this.router.navigate(['/dashboard']);
+        next: (res) => {
+          if (res && res.exitoso === false) {
+            this.errorMensaje = res.mensaje;
+            this.cdr.detectChanges();
+          } else {
+            this.router.navigate(['/dashboard']);
+          }
         },
         error: err => {
-          this.errorMensaje = 'Credenciales inválidas o error en el servidor.';
-          console.error(err);
+          this.errorMensaje = err.error?.mensaje || 'Credenciales inválidas o error en el servidor.';
+          this.cdr.detectChanges();
         }
       });
     } else {
       this.authService.register(this.credenciales).subscribe({
-        next: () => {
-          this.exitoMensaje = '¡Cuenta creada exitosamente! Ahora puedes iniciar sesión.';
-          this.isLogin = true;
+        next: (res) => {
+          if (res && res.exitoso === false) {
+            this.errorMensaje = res.mensaje;
+            this.cdr.detectChanges();
+          } else {
+            this.exitoMensaje = '¡Cuenta creada exitosamente! Ahora puedes iniciar sesión.';
+            this.isLogin = true;
+            this.cdr.detectChanges();
+          }
         },
         error: err => {
           this.errorMensaje = err.error?.mensaje || 'Hubo un error al crear la cuenta. Verifica tus datos.';
-          console.error(err);
+          this.cdr.detectChanges();
         }
       });
     }

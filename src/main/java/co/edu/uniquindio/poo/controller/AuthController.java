@@ -35,14 +35,15 @@ public class AuthController {
         String password = credentials.get("password");
 
         Usuario usuario = usuarioRepository.findByEmail(email)
-                .orElseThrow(() -> new IllegalArgumentException("Credenciales inválidas"));
+                .orElseThrow(() -> new IllegalArgumentException("Usuario no encontrado con el correo especificado"));
 
         if (!passwordEncoder.matches(password, usuario.getPassword())) {
-            throw new IllegalArgumentException("Credenciales inválidas");
+            throw new IllegalArgumentException("La contraseña ingresada es incorrecta");
         }
 
         if (!usuario.getActivo()) {
-            throw new IllegalArgumentException("El usuario está inactivo");
+            throw new IllegalArgumentException(
+                    "No puedes ingresar porque este usuario se encuentra inactivo o bloqueado en el sistema");
         }
 
         // Generar token JWT real usando el servicio de JWT
@@ -58,7 +59,7 @@ public class AuthController {
                 .rol(usuario.getRol())
                 .activo(usuario.getActivo())
                 .build();
-        
+
         // Devolver el token JWT en el campo mensaje
         return ResponseEntity.ok(ApiResponseDTO.exitoso(jwtToken, response));
     }

@@ -128,6 +128,21 @@ export class UsuarioListComponent implements OnInit, OnDestroy {
     }
   }
 
+  activar(id: number): void {
+    if (confirm('¿Activar este usuario?')) {
+      this.usuarioService.activar(id).subscribe({
+        next: () => {
+          this.show('Usuario activado', false);
+          setTimeout(() => this.cargarUsuarios(), 100);
+        },
+        error: err => {
+          this.show(err.error?.mensaje || 'Error al activar', true);
+          console.error('Error al activar usuario:', err);
+        }
+      });
+    }
+  }
+
   cancelarForm(): void {
     this.mostrarFormulario = false;
     this.editandoId = null;

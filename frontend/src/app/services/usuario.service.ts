@@ -37,4 +37,8 @@ export class UsuarioService {
   desactivar(id: number): Observable<ApiResponse<void>> {
     return this.http.delete<ApiResponse<void>>(`${this.url}/${id}`);
   }
+
+  activar(id: number): Observable<ApiResponse<void>> {
+    return this.http.put<ApiResponse<void>>(`${this.url}/${id}/activar`, {});
+  }
 }

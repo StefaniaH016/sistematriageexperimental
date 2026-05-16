@@ -135,4 +135,31 @@ public class UsuarioService {
         return usuarioRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Usuario", id));
     }
+
+    /**
+     * Actualiza los datos de un usuario existente.
+     */
+    public UsuarioResponseDTO actualizarUsuario(Long id, UsuarioRequestDTO request) {
+        Usuario usuario = buscarUsuarioPorId(id);
+
+        // Validar si el email pertenece a otro usuario
+        if (!usuario.getEmail().equals(request.getEmail()) && usuarioRepository.existsByEmail(request.getEmail())) {
+            throw new OperacionNoPermitidaException("Ya existe otro usuario con el email: " + request.getEmail());
+        }
+
+        // Validar si la identificacion pertenece a otro usuario
+        if (!usuario.getIdentificacion().equals(request.getIdentificacion()) && usuarioRepository.existsByIdentificacion(request.getIdentificacion())) {
+            throw new OperacionNoPermitidaException("Ya existe otro usuario con la identificación: " + request.getIdentificacion());
+        }
+
+        usuario.setIdentificacion(request.getIdentificacion());
+        usuario.setNombre(request.getNombre());
+        usuario.setApellido(request.getApellido());
+        usuario.setEmail(request.getEmail());
+        usuario.setRol(request.getRol());
+        // No actualizamos el password aquí por seguridad, se requeriría otro endpoint si se desea cambiar.
+
+        usuario = usuarioRepository.save(usuario);
+        return mapper.toUsuarioDTO(usuario);
+    }
 }
