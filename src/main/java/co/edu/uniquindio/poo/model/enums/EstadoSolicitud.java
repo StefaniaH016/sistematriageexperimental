@@ -37,7 +37,8 @@ public enum EstadoSolicitud {
     public boolean puedeTransicionarA(EstadoSolicitud destino) {
         return switch (this) {
             case REGISTRADA -> destino == CLASIFICADA;
-            case CLASIFICADA -> destino == EN_ATENCION;
+            // RF-02: Permite reclasificación (corregir tipo o aplicar sugerencia de IA)
+            case CLASIFICADA -> destino == EN_ATENCION || destino == CLASIFICADA;
             case EN_ATENCION -> destino == ATENDIDA;
             case ATENDIDA -> destino == CERRADA;
             case CERRADA -> false; // Estado final, no permite transiciones

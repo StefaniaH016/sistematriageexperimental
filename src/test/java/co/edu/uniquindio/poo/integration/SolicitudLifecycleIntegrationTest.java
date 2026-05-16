@@ -90,7 +90,7 @@ class SolicitudLifecycleIntegrationTest {
     @DisplayName("Ciclo de vida - Paso 2: Clasificar + priorizar → CLASIFICADA")
     void paso2_ClasificarSolicitud() throws Exception {
         ClasificacionRequestDTO request = ClasificacionRequestDTO.builder()
-                .tipoSolicitud(TipoSolicitud.CANCELACION_ASIGNATURAS)
+                .tipoSolicitud(TipoSolicitud.CANCELACION_ASIGNATURAS.name())
                 .observaciones("Clasificada como cancelación de asignaturas por solicitud del estudiante")
                 .build();
 
@@ -204,7 +204,7 @@ class SolicitudLifecycleIntegrationTest {
     void paso7_SolicitudCerradaInmutable() throws Exception {
         // Intentar reclasificar → debe fallar
         ClasificacionRequestDTO clasificacion = ClasificacionRequestDTO.builder()
-                .tipoSolicitud(TipoSolicitud.HOMOLOGACION)
+                .tipoSolicitud(TipoSolicitud.HOMOLOGACION.name())
                 .build();
 
         mockMvc.perform(put("/api/solicitudes/" + solicitudId + "/clasificar")

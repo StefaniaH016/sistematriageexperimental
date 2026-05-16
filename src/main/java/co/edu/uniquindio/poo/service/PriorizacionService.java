@@ -54,28 +54,70 @@ public class PriorizacionService {
         }
 
         String t = tipo.toLowerCase();
-        if (t.contains("registro") || t.contains("cancelacion") || t.contains("materia") || t.contains("asignatura")) {
+
+        // Cancelación de semestre: impacto crítico en trayectoria académica
+        if (t.contains("cancelacion_semestre") || t.contains("cancelacion de semestre") || t.contains("cancelar semestre")) {
+            justificacion.append("Cancelación de semestre: impacto crítico en trayectoria académica (+5). ");
+            return 5;
+        }
+        // Trámites de asignaturas
+        if (t.contains("registro") || t.contains("cancelacion_asignaturas") || t.contains("cancelación de asignaturas") || t.contains("materia") || t.contains("asignatura")) {
             justificacion.append("Trámite de asignaturas: impacto alto en matrícula (+4). ");
             return 4;
-        } else if (t.contains("homologa") || t.contains("reconocimiento")) {
-            justificacion.append("Homologación: impacto medio en plan de estudios (+3). ");
-            return 3;
-        } else if (t.contains("cupo") || t.contains("sobrecupo")) {
-            justificacion.append("Solicitud de cupos: impacto medio en matrícula (+2). ");
-            return 2;
-        } else if (t.contains("supletorio") || t.contains("examen")) {
+        }
+        // Examen supletorio
+        if (t.contains("supletorio") || t.contains("examen")) {
             justificacion.append("Examen supletorio: impacto alto por fechas (+4). ");
             return 4;
-        } else if (t.contains("reingreso") || t.contains("reserva")) {
-            justificacion.append("Trámite de permanencia: impacto medio (+3). ");
+        }
+        // Modificación de matrícula
+        if (t.contains("modificacion_matricula") || t.contains("modificación de matrícula") || t.contains("modificación") && t.contains("matrícula")) {
+            justificacion.append("Modificación de matrícula: impacto alto en plan académico (+4). ");
+            return 4;
+        }
+        // Proceso disciplinario
+        if (t.contains("disciplinario") || t.contains("apelacion") || t.contains("apelación")) {
+            justificacion.append("Proceso disciplinario: requiere atención urgente (+4). ");
+            return 4;
+        }
+        // Trabajo de grado y práctica empresarial
+        if (t.contains("trabajo_grado") || t.contains("trabajo de grado") || t.contains("practica_empresarial") || t.contains("práctica")) {
+            justificacion.append("Trámite de egreso: impacto alto en finalización de carrera (+3). ");
             return 3;
-        } else if (t.contains("certificado")) {
+        }
+        // Homologación y reconocimiento de créditos
+        if (t.contains("homologa") || t.contains("reconocimiento") || t.contains("reconocimiento_creditos")) {
+            justificacion.append("Homologación/Reconocimiento: impacto medio en plan de estudios (+3). ");
+            return 3;
+        }
+        // Cupos, reserva y reingreso
+        if (t.contains("cupo") || t.contains("sobrecupo") || t.contains("reserva") || t.contains("reingreso")) {
+            justificacion.append("Trámite de permanencia o cupos: impacto medio (+3). ");
+            return 3;
+        }
+        // Apoyo económico y becas
+        if (t.contains("apoyo_economico") || t.contains("apoyo económico") || t.contains("beca") || t.contains("descuento")) {
+            justificacion.append("Apoyo económico: impacto medio en continuidad del estudiante (+3). ");
+            return 3;
+        }
+        // Transferencia interna
+        if (t.contains("transferencia")) {
+            justificacion.append("Transferencia interna: impacto medio en plan académico (+2). ");
+            return 2;
+        }
+        // Apoyo psicosocial
+        if (t.contains("psicosocial") || t.contains("psicológico")) {
+            justificacion.append("Apoyo psicosocial: atención personalizada requerida (+2). ");
+            return 2;
+        }
+        // Trámites documentales
+        if (t.contains("certificado") || t.contains("paz_y_salvo") || t.contains("paz y salvo") || t.contains("acta_grado") || t.contains("acta de grado")) {
             justificacion.append("Trámite documental: impacto bajo (+1). ");
             return 1;
-        } else {
-            justificacion.append("Otras consultas: impacto bajo (+1). ");
-            return 1;
         }
+
+        justificacion.append("Consulta o trámite general: impacto bajo (+1). ");
+        return 1;
     }
 
     /**

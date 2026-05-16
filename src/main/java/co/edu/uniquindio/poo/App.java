@@ -31,7 +31,20 @@ public class App {
         System.out.println("  Sistema de Triage y Gestión de Solicitudes Académicas");
         System.out.println("  API REST disponible en: http://localhost:8080/api");
         System.out.println("  Swagger UI: http://localhost:8080/swagger-ui.html");
-        System.out.println("  H2 Console: http://localhost:8080/h2-console");
+        System.out.println("  Base de Datos: MariaDB en puerto 3307");
         System.out.println("============================================================");
+    }
+
+    @org.springframework.context.annotation.Bean
+    public org.springframework.boot.CommandLineRunner fixDbColumns(org.springframework.jdbc.core.JdbcTemplate jdbcTemplate) {
+        return args -> {
+            try {
+                jdbcTemplate.execute("ALTER TABLE solicitudes MODIFY tipo_solicitud VARCHAR(100)");
+                jdbcTemplate.execute("ALTER TABLE historial_solicitudes MODIFY accion VARCHAR(500)");
+                System.out.println("✅ Columnas de base de datos ajustadas correctamente para evitar Data Truncation.");
+            } catch (Exception e) {
+                System.err.println("Advertencia al ajustar columnas: " + e.getMessage());
+            }
+        };
     }
 }

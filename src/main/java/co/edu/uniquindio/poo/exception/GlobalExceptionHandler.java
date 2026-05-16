@@ -97,6 +97,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiResponseDTO<Void>> handleGeneralException(Exception ex) {
+        ex.printStackTrace(); // Log the exact error to console for debugging
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(ApiResponseDTO.error("Error interno del servidor: " + ex.getMessage()));
     }

@@ -277,7 +277,7 @@ public class SolicitudService {
 
         // RF-06: Registrar cierre en historial
         HistorialSolicitud historial = crearEntradaHistorial(
-                solicitud, usuario,
+                solicitud, administrativo,
                 "Solicitud cerrada",
                 request.getObservacionCierre()
         );

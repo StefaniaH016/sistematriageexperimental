@@ -1,13 +1,30 @@
 export enum TipoSolicitud {
+  // Trámites de asignaturas
   REGISTRO_ASIGNATURAS = 'REGISTRO_ASIGNATURAS',
-  HOMOLOGACION = 'HOMOLOGACION',
   CANCELACION_ASIGNATURAS = 'CANCELACION_ASIGNATURAS',
   SOLICITUD_CUPOS = 'SOLICITUD_CUPOS',
+  HOMOLOGACION = 'HOMOLOGACION',
   EXAMEN_SUPLETORIO = 'EXAMEN_SUPLETORIO',
-  CERTIFICADO_ESTUDIOS = 'CERTIFICADO_ESTUDIOS',
+  // Trámites de matrícula y continuidad
   MODIFICACION_MATRICULA = 'MODIFICACION_MATRICULA',
+  CANCELACION_SEMESTRE = 'CANCELACION_SEMESTRE',
   RESERVA_CUPO = 'RESERVA_CUPO',
   REINGRESO = 'REINGRESO',
+  TRANSFERENCIA_INTERNA = 'TRANSFERENCIA_INTERNA',
+  // Trámites documentales
+  CERTIFICADO_ESTUDIOS = 'CERTIFICADO_ESTUDIOS',
+  PAZ_Y_SALVO = 'PAZ_Y_SALVO',
+  ACTA_GRADO = 'ACTA_GRADO',
+  // Apoyos y bienestar
+  APOYO_ECONOMICO = 'APOYO_ECONOMICO',
+  BECA_DESCUENTO = 'BECA_DESCUENTO',
+  APOYO_PSICOSOCIAL = 'APOYO_PSICOSOCIAL',
+  // Procesos académicos especiales
+  RECONOCIMIENTO_CREDITOS = 'RECONOCIMIENTO_CREDITOS',
+  TRABAJO_GRADO = 'TRABAJO_GRADO',
+  PRACTICA_EMPRESARIAL = 'PRACTICA_EMPRESARIAL',
+  PROCESO_DISCIPLINARIO = 'PROCESO_DISCIPLINARIO',
+  // General
   CONSULTA_ACADEMICA = 'CONSULTA_ACADEMICA'
 }
 
@@ -43,15 +60,26 @@ export enum Rol {
 
 export const TIPO_SOLICITUD_LABELS: Record<TipoSolicitud, string> = {
   [TipoSolicitud.REGISTRO_ASIGNATURAS]: 'Registro de Asignaturas',
-  [TipoSolicitud.HOMOLOGACION]: 'Homologación',
   [TipoSolicitud.CANCELACION_ASIGNATURAS]: 'Cancelación de Asignaturas',
   [TipoSolicitud.SOLICITUD_CUPOS]: 'Solicitud de Cupos',
+  [TipoSolicitud.HOMOLOGACION]: 'Homologación',
   [TipoSolicitud.EXAMEN_SUPLETORIO]: 'Examen Supletorio',
-  [TipoSolicitud.CERTIFICADO_ESTUDIOS]: 'Certificado de Estudios',
   [TipoSolicitud.MODIFICACION_MATRICULA]: 'Modificación de Matrícula',
+  [TipoSolicitud.CANCELACION_SEMESTRE]: 'Cancelación de Semestre',
   [TipoSolicitud.RESERVA_CUPO]: 'Reserva de Cupo',
   [TipoSolicitud.REINGRESO]: 'Reingreso',
-  [TipoSolicitud.CONSULTA_ACADEMICA]: 'Consulta Académica'
+  [TipoSolicitud.TRANSFERENCIA_INTERNA]: 'Transferencia Interna de Programa',
+  [TipoSolicitud.CERTIFICADO_ESTUDIOS]: 'Certificado de Estudios',
+  [TipoSolicitud.PAZ_Y_SALVO]: 'Paz y Salvo Académico',
+  [TipoSolicitud.ACTA_GRADO]: 'Trámite de Acta de Grado',
+  [TipoSolicitud.APOYO_ECONOMICO]: 'Apoyo Económico',
+  [TipoSolicitud.BECA_DESCUENTO]: 'Beca o Descuento de Matrícula',
+  [TipoSolicitud.APOYO_PSICOSOCIAL]: 'Apoyo Psicosocial',
+  [TipoSolicitud.RECONOCIMIENTO_CREDITOS]: 'Reconocimiento de Créditos',
+  [TipoSolicitud.TRABAJO_GRADO]: 'Trabajo de Grado',
+  [TipoSolicitud.PRACTICA_EMPRESARIAL]: 'Práctica Empresarial',
+  [TipoSolicitud.PROCESO_DISCIPLINARIO]: 'Proceso Disciplinario / Apelación',
+  [TipoSolicitud.CONSULTA_ACADEMICA]: 'Consulta Académica General'
 };
 
 export const ESTADO_LABELS: Record<EstadoSolicitud, string> = {

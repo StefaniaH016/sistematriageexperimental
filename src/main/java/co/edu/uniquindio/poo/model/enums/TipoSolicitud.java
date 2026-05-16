@@ -6,16 +6,38 @@ package co.edu.uniquindio.poo.model.enums;
  */
 public enum TipoSolicitud {
 
+    // Trámites de asignaturas
     REGISTRO_ASIGNATURAS("Registro de asignaturas"),
-    HOMOLOGACION("Homologación"),
     CANCELACION_ASIGNATURAS("Cancelación de asignaturas"),
     SOLICITUD_CUPOS("Solicitud de cupos"),
+    HOMOLOGACION("Homologación"),
     EXAMEN_SUPLETORIO("Examen supletorio"),
-    CERTIFICADO_ESTUDIOS("Certificado de estudios"),
+
+    // Trámites de matrícula y continuidad
     MODIFICACION_MATRICULA("Modificación de matrícula"),
+    CANCELACION_SEMESTRE("Cancelación de semestre"),
     RESERVA_CUPO("Reserva de cupo"),
     REINGRESO("Reingreso"),
-    CONSULTA_ACADEMICA("Consulta académica");
+    TRANSFERENCIA_INTERNA("Transferencia interna de programa"),
+
+    // Trámites documentales y certificaciones
+    CERTIFICADO_ESTUDIOS("Certificado de estudios"),
+    PAZ_Y_SALVO("Paz y salvo académico"),
+    ACTA_GRADO("Trámite de acta de grado"),
+
+    // Apoyos y bienestar
+    APOYO_ECONOMICO("Solicitud de apoyo económico"),
+    BECA_DESCUENTO("Solicitud de beca o descuento"),
+    APOYO_PSICOSOCIAL("Solicitud de apoyo psicosocial"),
+
+    // Procesos académicos especiales
+    RECONOCIMIENTO_CREDITOS("Reconocimiento de créditos"),
+    TRABAJO_GRADO("Trámite de trabajo de grado"),
+    PRACTICA_EMPRESARIAL("Trámite de práctica empresarial"),
+    PROCESO_DISCIPLINARIO("Proceso disciplinario o apelación"),
+
+    // General
+    CONSULTA_ACADEMICA("Consulta académica general");
 
     private final String descripcion;
 

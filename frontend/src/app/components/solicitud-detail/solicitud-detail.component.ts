@@ -115,7 +115,7 @@ export class AnyToPrioridadPipe implements PipeTransform {
                 <span class="info-label">Tipo</span>
                 <span class="info-value">
                   @if (solicitud.tipoSolicitud) {
-                    <span class="tipo-badge">{{ solicitud.tipoSolicitud }}</span>
+                    <span class="tipo-badge">{{ tipoLabel(solicitud.tipoSolicitud | anyToTipo) }}</span>
                   } @else {
                     <em class="text-muted">Sin clasificar</em>
                   }
@@ -181,7 +181,7 @@ export class AnyToPrioridadPipe implements PipeTransform {
               </div>
 
               <!-- RF-02: Clasificar (Solo Administrativo) -->
-              @if (authService.currentUserValue?.rol === 'ADMINISTRATIVO' && solicitud.estado === 'REGISTRADA') {
+              @if (authService.currentUserValue?.rol === 'ADMINISTRATIVO' && (solicitud.estado === 'REGISTRADA' || solicitud.estado === 'CLASIFICADA')) {
                 <div class="action-section">
                   <div class="action-header">
                     <h3>Clasificar Solicitud</h3>
@@ -232,12 +232,12 @@ export class AnyToPrioridadPipe implements PipeTransform {
 
                   <div class="action-form">
                     <div class="input-group">
-                      <input type="text" [(ngModel)]="clasificarTipo" placeholder="Tipo de solicitud (ej: Supletorio, Homologación)..." class="form-input" list="tipos-comunes">
-                      <datalist id="tipos-comunes">
+                      <select [(ngModel)]="clasificarTipo" class="form-input">
+                        <option value="">Seleccione tipo de solicitud...</option>
                         @for (t of tipos; track t) {
-                          <option [value]="tipoLabel(t)">
+                          <option [value]="t">{{ tipoLabel(t) }}</option>
                         }
-                      </datalist>
+                      </select>
                     </div>
                     <input type="text" [(ngModel)]="clasificarObs" placeholder="Observaciones..." class="form-input">
                     <button class="btn btn-action" [disabled]="!clasificarTipo" (click)="clasificar()">Clasificar</button>
