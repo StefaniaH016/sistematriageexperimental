@@ -24,7 +24,7 @@ public interface SolicitudRepository extends JpaRepository<Solicitud, Long> {
     List<Solicitud> findByEstado(EstadoSolicitud estado);
 
     /** RF-07: Consultar por tipo de solicitud */
-    List<Solicitud> findByTipoSolicitud(TipoSolicitud tipoSolicitud);
+    List<Solicitud> findByTipoSolicitud(String tipoSolicitud);
 
     /** RF-07: Consultar por prioridad */
     List<Solicitud> findByPrioridad(Prioridad prioridad);
@@ -43,7 +43,7 @@ public interface SolicitudRepository extends JpaRepository<Solicitud, Long> {
             "(:responsableId IS NULL OR s.responsable.id = :responsableId)")
     List<Solicitud> buscarConFiltros(
             @Param("estado") EstadoSolicitud estado,
-            @Param("tipo") TipoSolicitud tipo,
+            @Param("tipo") String tipo,
             @Param("prioridad") Prioridad prioridad,
             @Param("responsableId") Long responsableId
     );
@@ -56,7 +56,7 @@ public interface SolicitudRepository extends JpaRepository<Solicitud, Long> {
             "(:responsableId IS NULL OR s.responsable.id = :responsableId)")
     Page<Solicitud> buscarConFiltrosPaginado(
             @Param("estado") EstadoSolicitud estado,
-            @Param("tipo") TipoSolicitud tipo,
+            @Param("tipo") String tipo,
             @Param("prioridad") Prioridad prioridad,
             @Param("responsableId") Long responsableId,
             Pageable pageable

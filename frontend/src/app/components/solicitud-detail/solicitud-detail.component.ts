@@ -114,8 +114,8 @@ export class AnyToPrioridadPipe implements PipeTransform {
               <div class="info-item">
                 <span class="info-label">Tipo</span>
                 <span class="info-value">
-                  @if (solicitud.tipo) {
-                    <span class="tipo-badge">{{ tipoLabel(solicitud.tipo) }}</span>
+                  @if (solicitud.tipoSolicitud) {
+                    <span class="tipo-badge">{{ solicitud.tipoSolicitud }}</span>
                   } @else {
                     <em class="text-muted">Sin clasificar</em>
                   }
@@ -195,20 +195,30 @@ export class AnyToPrioridadPipe implements PipeTransform {
                   
                   @if (sugerenciaIA) {
                     <div class="ia-suggestion">
-                      <div class="ia-badge">IA</div>
+                      <div class="ia-badge" [class.rules-badge]="sugerenciaIA.modeloUtilizado === 'REGLAS_NEGOCIO'">
+                        {{ sugerenciaIA.modeloUtilizado === 'REGLAS_NEGOCIO' ? 'SISTEMA' : 'IA' }}
+                      </div>
                       <div class="ia-content">
                         <div class="ia-main-suggestion">
-                          <strong>Tipo:</strong> {{ tipoLabel(sugerenciaIA.tipoSugerido | anyToTipo) }}
-                          <span class="sep">|</span>
-                          <strong>Prioridad:</strong> {{ prioridadLabel(sugerenciaIA.prioridadSugerida | anyToPrioridad) }}
+                          <strong>Sugerencia:</strong> {{ tipoLabel(sugerenciaIA.tipoSolicitudSugerido | anyToTipo) }}
+                          @if (sugerenciaIA.prioridadSugerida) {
+                            <span class="sep">|</span>
+                            <strong>Prioridad:</strong> {{ prioridadLabel(sugerenciaIA.prioridadSugerida | anyToPrioridad) }}
+                          }
                         </div>
-                        @if (sugerenciaIA.razonamiento) {
-                          <p class="ia-reason">"{{ sugerenciaIA.razonamiento }}"</p>
+                        @if (sugerenciaIA.justificacionIA) {
+                          <p class="ia-reason">{{ sugerenciaIA.justificacionIA }}</p>
                         }
-                        @if (sugerenciaIA.resumen) {
+                        @if (sugerenciaIA.resumenHistorial) {
+                          <div class="ia-resumen-box">
+                            <strong>Resumen del Historial:</strong>
+                            <p class="ia-resumen">{{ sugerenciaIA.resumenHistorial }}</p>
+                          </div>
+                        }
+                        @if (sugerenciaIA.sugerenciaRespuesta) {
                           <div class="ia-resumen-box">
                             <strong>Borrador de respuesta:</strong>
-                            <p class="ia-resumen">{{ sugerenciaIA.resumen }}</p>
+                            <p class="ia-resumen">{{ sugerenciaIA.sugerenciaRespuesta }}</p>
                           </div>
                         }
                       </div>
@@ -221,13 +231,16 @@ export class AnyToPrioridadPipe implements PipeTransform {
                   }
 
                   <div class="action-form">
-                    <select [(ngModel)]="clasificarTipo" class="form-input">
-                      @for (t of tipos; track t) {
-                        <option [value]="t">{{ tipoLabel(t) }}</option>
-                      }
-                    </select>
+                    <div class="input-group">
+                      <input type="text" [(ngModel)]="clasificarTipo" placeholder="Tipo de solicitud (ej: Supletorio, Homologación)..." class="form-input" list="tipos-comunes">
+                      <datalist id="tipos-comunes">
+                        @for (t of tipos; track t) {
+                          <option [value]="tipoLabel(t)">
+                        }
+                      </datalist>
+                    </div>
                     <input type="text" [(ngModel)]="clasificarObs" placeholder="Observaciones..." class="form-input">
-                    <button class="btn btn-action" (click)="clasificar()">Clasificar</button>
+                    <button class="btn btn-action" [disabled]="!clasificarTipo" (click)="clasificar()">Clasificar</button>
                   </div>
                 </div>
               }
@@ -238,12 +251,13 @@ export class AnyToPrioridadPipe implements PipeTransform {
                   <h3>Priorizar Solicitud</h3>
                   <div class="action-form">
                     <select [(ngModel)]="priorizarPrioridad" class="form-input">
-                      <option value="">Auto (por reglas)</option>
+                      <option value="">Seleccione prioridad...</option>
                       @for (p of prioridadesEnum; track p) {
                         <option [value]="p">{{ prioridadLabel(p) }}</option>
                       }
                     </select>
-                    <button class="btn btn-action" (click)="priorizar()">Priorizar</button>
+                    <input type="text" [(ngModel)]="priorizarObs" placeholder="Justificación obligatoria *" class="form-input" required>
+                    <button class="btn btn-action" [disabled]="!priorizarPrioridad || !priorizarObs" (click)="priorizar()">Priorizar</button>
                   </div>
                 </div>
               }
@@ -259,8 +273,8 @@ export class AnyToPrioridadPipe implements PipeTransform {
                         <option [ngValue]="r.id">{{ r.nombre }} {{ r.apellido }}</option>
                       }
                     </select>
-                    <input type="text" [(ngModel)]="asignarObs" placeholder="Observaciones..." class="form-input">
-                    <button class="btn btn-action" [disabled]="asignarResponsableId === 0" (click)="asignar()">Asignar</button>
+                    <input type="text" [(ngModel)]="asignarObs" placeholder="Observaciones obligatorias *" class="form-input" required>
+                    <button class="btn btn-action" [disabled]="asignarResponsableId === 0 || !asignarObs" (click)="asignar()">Asignar</button>
                   </div>
                 </div>
               }
@@ -275,8 +289,13 @@ export class AnyToPrioridadPipe implements PipeTransform {
                         <option [value]="e">{{ estadoLabel(e) }}</option>
                       }
                     </select>
-                    <input type="text" [(ngModel)]="estadoObs" placeholder="Observaciones..." class="form-input">
-                    <button class="btn btn-action" (click)="cambiarEstado()">Cambiar</button>
+                    <input type="text" [(ngModel)]="estadoObs" placeholder="Observaciones obligatorias *" class="form-input" required>
+                    <button class="btn btn-action" [disabled]="!estadoObs || (nuevoEstado === 'EN_ATENCION' && (!solicitud.responsable || !solicitud.prioridad))" (click)="cambiarEstado()">Cambiar</button>
+                    @if (nuevoEstado === 'EN_ATENCION' && (!solicitud.responsable || !solicitud.prioridad)) {
+                      <p style="color: #b85450; font-size: 0.75rem; margin: 0.25rem 0 0 0;">
+                        * Requiere responsable y prioridad para iniciar atención.
+                      </p>
+                    }
                   </div>
                 </div>
               }
@@ -709,6 +728,7 @@ export class AnyToPrioridadPipe implements PipeTransform {
       font-weight: 700;
       letter-spacing: 1px;
     }
+    .rules-badge { background: var(--color-text-secondary, #6b6b6b); }
 
     .ia-content { flex: 1; font-size: 0.85rem; }
     .ia-main-suggestion {
@@ -871,12 +891,14 @@ export class SolicitudDetailComponent implements OnInit {
   sugerenciaIA: SugerenciaIAResponseDTO | null = null;
 
   // Form models
-  clasificarTipo: TipoSolicitud = TipoSolicitud.REGISTRO_ASIGNATURAS;
+  clasificarTipo: string = '';
   clasificarObs = '';
-  priorizarPrioridad = '';
+  priorizarPrioridad: string = '';
+  priorizarObs = '';
   asignarResponsableId = 0;
   asignarObs = '';
   nuevoEstado: EstadoSolicitud = EstadoSolicitud.CLASIFICADA;
+  estadosDisponibles: EstadoSolicitud[] = [];
   estadoObs = '';
   cerrarObs = '';
 
@@ -931,8 +953,11 @@ export class SolicitudDetailComponent implements OnInit {
     });
   }
 
-  get estadosDisponibles(): EstadoSolicitud[] {
-    if (!this.solicitud) return [];
+  actualizarEstadosDisponibles(): void {
+    if (!this.solicitud) {
+      this.estadosDisponibles = [];
+      return;
+    }
     const transiciones: Record<string, EstadoSolicitud[]> = {
       'REGISTRADA': [EstadoSolicitud.CLASIFICADA],
       'CLASIFICADA': [EstadoSolicitud.EN_ATENCION],
@@ -940,13 +965,9 @@ export class SolicitudDetailComponent implements OnInit {
       'ATENDIDA': [EstadoSolicitud.CERRADA],
       'CERRADA': []
     };
-    return transiciones[this.solicitud.estado] || [];
-  }
-
-  actualizarEstadosDisponibles(): void {
-    const disponibles = this.estadosDisponibles;
-    if (disponibles.length > 0) {
-      this.nuevoEstado = disponibles[0];
+    this.estadosDisponibles = transiciones[this.solicitud.estado] || [];
+    if (this.estadosDisponibles.length > 0) {
+      this.nuevoEstado = this.estadosDisponibles[0];
     }
   }
 
@@ -976,16 +997,16 @@ export class SolicitudDetailComponent implements OnInit {
 
   aplicarSugerenciaIA(): void {
     if (this.sugerenciaIA) {
-      this.clasificarTipo = this.sugerenciaIA.tipoSugerido as TipoSolicitud;
+      this.clasificarTipo = this.sugerenciaIA.tipoSolicitudSugerido;
       this.priorizarPrioridad = this.sugerenciaIA.prioridadSugerida;
-      this.clasificarObs = `Sugerencia IA Aplicada. Razón: ${this.sugerenciaIA.razonamiento}`;
-      // También podríamos pre-llenar la observación de prioridad si quisiéramos
+      this.clasificarObs = `Sugerencia IA Aplicada. Razón: ${this.sugerenciaIA.justificacionIA}`;
+      this.priorizarObs = 'Prioridad sugerida por IA basada en el análisis de la solicitud.';
     }
   }
 
   clasificar(): void {
     this.solicitudService.clasificar(this.solicitudId, {
-      tipo: this.clasificarTipo,
+      tipoSolicitud: this.clasificarTipo,
       observaciones: this.clasificarObs || undefined
     }).subscribe({
       next: () => this.onSuccess('Solicitud clasificada correctamente'),
@@ -994,39 +1015,68 @@ export class SolicitudDetailComponent implements OnInit {
   }
 
   priorizar(): void {
+    if (!this.priorizarPrioridad || !this.priorizarObs) {
+      this.onError({ error: { mensaje: 'La prioridad y su justificación son obligatorias' } });
+      return;
+    }
     this.solicitudService.priorizar(this.solicitudId, {
-      prioridad: this.priorizarPrioridad ? this.priorizarPrioridad as Prioridad : undefined
+      prioridad: this.priorizarPrioridad as Prioridad,
+      justificacion: this.priorizarObs
     }).subscribe({
-      next: () => this.onSuccess('Solicitud priorizada correctamente'),
+      next: () => {
+        this.priorizarObs = '';
+        this.onSuccess('Solicitud priorizada correctamente');
+      },
       error: err => this.onError(err)
     });
   }
 
   asignar(): void {
+    if (this.asignarResponsableId === 0 || !this.asignarObs) {
+      this.onError({ error: { mensaje: 'El responsable y la observación son obligatorios' } });
+      return;
+    }
     this.solicitudService.asignar(this.solicitudId, {
       responsableId: this.asignarResponsableId,
-      observaciones: this.asignarObs || undefined
+      observaciones: this.asignarObs
     }).subscribe({
-      next: () => this.onSuccess('Responsable asignado correctamente'),
+      next: () => {
+        this.asignarObs = '';
+        this.onSuccess('Responsable asignado correctamente');
+      },
       error: err => this.onError(err)
     });
   }
 
   cambiarEstado(): void {
+    if (!this.estadoObs) {
+      this.onError({ error: { mensaje: 'La observación del cambio de estado es obligatoria' } });
+      return;
+    }
     this.solicitudService.cambiarEstado(this.solicitudId, {
       nuevoEstado: this.nuevoEstado,
-      observaciones: this.estadoObs || undefined
+      observaciones: this.estadoObs
     }).subscribe({
-      next: () => this.onSuccess('Estado cambiado correctamente'),
+      next: () => {
+        this.estadoObs = '';
+        this.onSuccess('Estado cambiado correctamente');
+      },
       error: err => this.onError(err)
     });
   }
 
   cerrar(): void {
+    if (!this.cerrarObs) {
+      this.onError({ error: { mensaje: 'La observación de cierre es obligatoria' } });
+      return;
+    }
     this.solicitudService.cerrar(this.solicitudId, {
-      observaciones: this.cerrarObs
+      observacionCierre: this.cerrarObs
     }).subscribe({
-      next: () => this.onSuccess('Solicitud cerrada correctamente'),
+      next: () => {
+        this.cerrarObs = '';
+        this.onSuccess('Solicitud cerrada correctamente');
+      },
       error: err => this.onError(err)
     });
   }
@@ -1046,6 +1096,6 @@ export class SolicitudDetailComponent implements OnInit {
 
   estadoLabel(e: EstadoSolicitud): string { return ESTADO_LABELS[e] || e; }
   prioridadLabel(p: Prioridad): string { return PRIORIDAD_LABELS[p] || p; }
-  tipoLabel(t: TipoSolicitud): string { return TIPO_SOLICITUD_LABELS[t] || t; }
+  tipoLabel(t: any): string { return TIPO_SOLICITUD_LABELS[t as TipoSolicitud] || t; }
   canalLabel(c: CanalOrigen): string { return CANAL_LABELS[c] || c; }
 }

@@ -30,7 +30,7 @@ export interface SolicitudResponse {
   id: number;
   titulo: string;
   descripcion: string;
-  tipo: TipoSolicitud;
+  tipoSolicitud: string;
   estado: EstadoSolicitud;
   prioridad: Prioridad;
   canalOrigen: CanalOrigen;
@@ -61,12 +61,13 @@ export interface SolicitudRequest {
 }
 
 export interface ClasificacionRequest {
-  tipo: TipoSolicitud;
+  tipoSolicitud: string;
   observaciones?: string;
 }
 
 export interface PriorizacionRequest {
-  prioridad?: Prioridad;
+  prioridad: Prioridad;
+  justificacion: string;
 }
 
 export interface AsignacionRequest {
@@ -80,7 +81,7 @@ export interface CambioEstadoRequest {
 }
 
 export interface CierreRequest {
-  observaciones: string;
+  observacionCierre: string;
 }
 
 export interface UsuarioRequest {

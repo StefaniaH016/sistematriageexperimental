@@ -10,6 +10,11 @@ public enum TipoSolicitud {
     HOMOLOGACION("Homologación"),
     CANCELACION_ASIGNATURAS("Cancelación de asignaturas"),
     SOLICITUD_CUPOS("Solicitud de cupos"),
+    EXAMEN_SUPLETORIO("Examen supletorio"),
+    CERTIFICADO_ESTUDIOS("Certificado de estudios"),
+    MODIFICACION_MATRICULA("Modificación de matrícula"),
+    RESERVA_CUPO("Reserva de cupo"),
+    REINGRESO("Reingreso"),
     CONSULTA_ACADEMICA("Consulta académica");
 
     private final String descripcion;

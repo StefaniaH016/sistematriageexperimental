@@ -131,7 +131,7 @@ class SolicitudControllerIntegrationTest {
 
         // Clasificar como administrativo
         ClasificacionRequestDTO clasificacionRequest = ClasificacionRequestDTO.builder()
-                .tipoSolicitud(TipoSolicitud.HOMOLOGACION)
+                .tipoSolicitud("Homologación")
                 .observaciones("Clasificada como homologación")
                 .build();
 
@@ -142,7 +142,7 @@ class SolicitudControllerIntegrationTest {
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.datos.estado").value("CLASIFICADA"))
-                .andExpect(jsonPath("$.datos.tipoSolicitud").value("HOMOLOGACION"))
+                .andExpect(jsonPath("$.datos.tipoSolicitud").value("Homologación"))
                 .andExpect(jsonPath("$.datos.prioridad").exists())
                 .andExpect(jsonPath("$.datos.justificacionPrioridad").exists());
     }

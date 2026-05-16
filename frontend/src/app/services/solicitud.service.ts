@@ -65,7 +65,7 @@ export class SolicitudService {
   /** RF-07: Listar con filtros */
   listar(filtros?: {
     estado?: EstadoSolicitud;
-    tipo?: TipoSolicitud;
+    tipo?: string;
     prioridad?: Prioridad;
     responsableId?: number;
   }): Observable<ApiResponse<SolicitudResponse[]>> {

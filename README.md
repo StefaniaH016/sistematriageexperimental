@@ -54,15 +54,6 @@ El sistema se conecta a la red de IA de Google para sugerir clasificaciones y bo
 2. **Configuración en Windows (PowerShell)**:
    ```powershell
    $env:GEMINI_API_KEY="tu_clave_aqui"
-   ```
-3. **Configuración en VS Code (`launch.json`)**:
-   Agrega la clave en la sección `env`:
-   ```json
-   "env": {
-     "GEMINI_API_KEY": "tu_clave_aqui"
-   }
-   ```
-4. Si prefieres no usar variables de entorno, puedes ponerla directamente en `src/main/resources/application.properties` en la línea `gemini.api.key`, pero **ten cuidado de no hacer push** con el archivo modificado.
 
 ### PASO 3: Despliegue del Backend (Spring Boot)
 1. Abre una terminal (Símbolo del sistema, PowerShell o la terminal de tu IDE) ubicada en la **carpeta principal** del repositorio (donde está el `pom.xml`).

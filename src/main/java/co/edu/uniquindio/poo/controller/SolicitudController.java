@@ -171,7 +171,7 @@ public class SolicitudController {
     @GetMapping
     public ResponseEntity<ApiResponseDTO<List<SolicitudResponseDTO>>> consultarSolicitudes(
             @RequestParam(name = "estado", required = false) EstadoSolicitud estado,
-            @RequestParam(name = "tipo", required = false) TipoSolicitud tipo,
+            @RequestParam(name = "tipo", required = false) String tipo,
             @RequestParam(name = "prioridad", required = false) Prioridad prioridad,
             @RequestParam(name = "responsableId", required = false) Long responsableId) {
 
@@ -195,7 +195,7 @@ public class SolicitudController {
     @GetMapping("/paginado")
     public ResponseEntity<ApiResponseDTO<PageResponseDTO<SolicitudResponseDTO>>> consultarSolicitudesPaginado(
             @RequestParam(name = "estado", required = false) EstadoSolicitud estado,
-            @RequestParam(name = "tipo", required = false) TipoSolicitud tipo,
+            @RequestParam(name = "tipo", required = false) String tipo,
             @RequestParam(name = "prioridad", required = false) Prioridad prioridad,
             @RequestParam(name = "responsableId", required = false) Long responsableId,
             @RequestParam(name = "page", defaultValue = "0") int page,

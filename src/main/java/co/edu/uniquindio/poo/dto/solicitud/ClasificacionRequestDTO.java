@@ -16,7 +16,7 @@ import lombok.*;
 public class ClasificacionRequestDTO {
 
     @NotNull(message = "El tipo de solicitud es obligatorio")
-    private TipoSolicitud tipoSolicitud;
+    private String tipoSolicitud;
 
     /** Observaciones opcionales sobre la clasificación */
     private String observaciones;

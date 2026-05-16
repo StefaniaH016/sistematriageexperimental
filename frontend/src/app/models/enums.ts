@@ -3,6 +3,11 @@ export enum TipoSolicitud {
   HOMOLOGACION = 'HOMOLOGACION',
   CANCELACION_ASIGNATURAS = 'CANCELACION_ASIGNATURAS',
   SOLICITUD_CUPOS = 'SOLICITUD_CUPOS',
+  EXAMEN_SUPLETORIO = 'EXAMEN_SUPLETORIO',
+  CERTIFICADO_ESTUDIOS = 'CERTIFICADO_ESTUDIOS',
+  MODIFICACION_MATRICULA = 'MODIFICACION_MATRICULA',
+  RESERVA_CUPO = 'RESERVA_CUPO',
+  REINGRESO = 'REINGRESO',
   CONSULTA_ACADEMICA = 'CONSULTA_ACADEMICA'
 }
 
@@ -41,6 +46,11 @@ export const TIPO_SOLICITUD_LABELS: Record<TipoSolicitud, string> = {
   [TipoSolicitud.HOMOLOGACION]: 'Homologación',
   [TipoSolicitud.CANCELACION_ASIGNATURAS]: 'Cancelación de Asignaturas',
   [TipoSolicitud.SOLICITUD_CUPOS]: 'Solicitud de Cupos',
+  [TipoSolicitud.EXAMEN_SUPLETORIO]: 'Examen Supletorio',
+  [TipoSolicitud.CERTIFICADO_ESTUDIOS]: 'Certificado de Estudios',
+  [TipoSolicitud.MODIFICACION_MATRICULA]: 'Modificación de Matrícula',
+  [TipoSolicitud.RESERVA_CUPO]: 'Reserva de Cupo',
+  [TipoSolicitud.REINGRESO]: 'Reingreso',
   [TipoSolicitud.CONSULTA_ACADEMICA]: 'Consulta Académica'
 };
 

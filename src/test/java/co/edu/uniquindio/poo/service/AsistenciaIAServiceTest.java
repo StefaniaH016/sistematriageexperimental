@@ -32,7 +32,7 @@ class AsistenciaIAServiceTest {
     private SolicitudService solicitudService;
 
     private SolicitudResponseDTO crearSolicitudMock(Long id, String descripcion,
-                                                     TipoSolicitud tipo, Prioridad prioridad,
+                                                     String tipo, Prioridad prioridad,
                                                      LocalDate fechaLimite) {
         return SolicitudResponseDTO.builder()
                 .id(id)
@@ -55,7 +55,7 @@ class AsistenciaIAServiceTest {
 
         SugerenciaIAResponseDTO resultado = asistenciaIAService.obtenerClasificacionSugerida(1L);
 
-        assertEquals(TipoSolicitud.HOMOLOGACION, resultado.getTipoSolicitudSugerido());
+        assertEquals("Homologación", resultado.getTipoSolicitudSugerido());
     }
 
     @Test
@@ -68,7 +68,7 @@ class AsistenciaIAServiceTest {
 
         SugerenciaIAResponseDTO resultado = asistenciaIAService.obtenerClasificacionSugerida(2L);
 
-        assertEquals(TipoSolicitud.CANCELACION_ASIGNATURAS, resultado.getTipoSolicitudSugerido());
+        assertEquals("Cancelación de asignaturas", resultado.getTipoSolicitudSugerido());
     }
 
     @Test
@@ -81,7 +81,7 @@ class AsistenciaIAServiceTest {
 
         SugerenciaIAResponseDTO resultado = asistenciaIAService.obtenerClasificacionSugerida(3L);
 
-        assertEquals(TipoSolicitud.SOLICITUD_CUPOS, resultado.getTipoSolicitudSugerido());
+        assertEquals("Solicitud de cupos", resultado.getTipoSolicitudSugerido());
     }
 
     @Test
@@ -94,7 +94,7 @@ class AsistenciaIAServiceTest {
 
         SugerenciaIAResponseDTO resultado = asistenciaIAService.obtenerClasificacionSugerida(4L);
 
-        assertEquals(TipoSolicitud.REGISTRO_ASIGNATURAS, resultado.getTipoSolicitudSugerido());
+        assertEquals("Registro de asignaturas", resultado.getTipoSolicitudSugerido());
     }
 
     @Test
@@ -107,7 +107,7 @@ class AsistenciaIAServiceTest {
 
         SugerenciaIAResponseDTO resultado = asistenciaIAService.obtenerClasificacionSugerida(5L);
 
-        assertEquals(TipoSolicitud.CONSULTA_ACADEMICA, resultado.getTipoSolicitudSugerido());
+        assertEquals("Consulta académica", resultado.getTipoSolicitudSugerido());
     }
 
     // ==================== RF-10: SUGERENCIA DE PRIORIDAD ====================
@@ -176,13 +176,13 @@ class AsistenciaIAServiceTest {
     void solicitudYaClasificada_DebeRespetarTipoExistente() {
         SolicitudResponseDTO solicitud = crearSolicitudMock(
                 10L, "Solicitud ya gestionada",
-                TipoSolicitud.HOMOLOGACION, Prioridad.ALTA, null);
+                "Homologación", Prioridad.ALTA, null);
         when(solicitudService.obtenerPorId(10L)).thenReturn(solicitud);
 
         SugerenciaIAResponseDTO resultado = asistenciaIAService.obtenerClasificacionSugerida(10L);
 
         // Debe respetar el tipo y prioridad ya asignados
-        assertEquals(TipoSolicitud.HOMOLOGACION, resultado.getTipoSolicitudSugerido());
+        assertEquals("Homologación", resultado.getTipoSolicitudSugerido());
         assertEquals(Prioridad.ALTA, resultado.getPrioridadSugerida());
     }
 

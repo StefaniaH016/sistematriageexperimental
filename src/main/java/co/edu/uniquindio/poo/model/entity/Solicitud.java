@@ -40,10 +40,9 @@ public class Solicitud {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    /** RF-02: Tipo de solicitud (Registro, Homologación, Cancelación, etc.) */
-    @Enumerated(EnumType.STRING)
-    @Column(length = 30)
-    private TipoSolicitud tipoSolicitud;
+    /** RF-02: Tipo de solicitud (Registro, Homologación, Cancelación, Supletorio, etc.) */
+    @Column(length = 100)
+    private String tipoSolicitud;
 
     /** RF-01: Descripción detallada de la solicitud */
     @Column(nullable = false, length = 2000)
@@ -128,7 +127,7 @@ public class Solicitud {
     /**
      * RF-02 y RF-03: Clasifica la solicitud y asigna prioridad inicial.
      */
-    public void clasificar(TipoSolicitud tipoSolicitud, Prioridad prioridad, String justificacionPrioridad) {
+    public void clasificar(String tipoSolicitud, Prioridad prioridad, String justificacionPrioridad) {
         validarMutabilidad();
         this.tipoSolicitud = tipoSolicitud;
         this.prioridad = prioridad;

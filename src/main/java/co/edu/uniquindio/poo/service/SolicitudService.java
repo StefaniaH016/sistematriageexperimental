@@ -111,6 +111,11 @@ public class SolicitudService {
         Solicitud solicitud = buscarSolicitudPorId(solicitudId);
         Usuario usuario = actorContextService.obtenerActorActual();
 
+        // RF-02: Validar que el tipo de solicitud no sea nulo ni vacío
+        if (request.getTipoSolicitud() == null || request.getTipoSolicitud().trim().isEmpty()) {
+            throw new co.edu.uniquindio.poo.exception.OperacionNoPermitidaException("El tipo de solicitud es obligatorio para realizar la clasificación (RF-02).");
+        }
+
         // RF-08: Verificar que no esté cerrada
         validarNoEstaCerrada(solicitud);
 
@@ -131,7 +136,7 @@ public class SolicitudService {
         // RF-06: Registrar en historial
         HistorialSolicitud historial = crearEntradaHistorial(
                 solicitud, usuario,
-                "Solicitud clasificada como: " + request.getTipoSolicitud().getDescripcion(),
+                "Solicitud clasificada como: " + request.getTipoSolicitud(),
                 request.getObservaciones() != null ? request.getObservaciones()
                         : "Prioridad asignada: " + solicitud.getPrioridad().getDescripcion()
         );
@@ -153,6 +158,14 @@ public class SolicitudService {
         Usuario usuario = actorContextService.obtenerActorActual();
 
         validarNoEstaCerrada(solicitud);
+
+        if (request.getPrioridad() == null) {
+            throw new co.edu.uniquindio.poo.exception.OperacionNoPermitidaException("La prioridad es obligatoria.");
+        }
+
+        if (request.getJustificacion() == null || request.getJustificacion().trim().isEmpty()) {
+            throw new co.edu.uniquindio.poo.exception.OperacionNoPermitidaException("La justificación es obligatoria para cambios manuales de prioridad (RF-03).");
+        }
 
         Prioridad prioridadAnterior = solicitud.getPrioridad();
         solicitud.asignarPrioridad(request.getPrioridad(), request.getJustificacion());
@@ -248,13 +261,15 @@ public class SolicitudService {
      */
     public SolicitudResponseDTO cerrarSolicitud(Long solicitudId, CierreRequestDTO request) {
         Solicitud solicitud = buscarSolicitudPorId(solicitudId);
-        Usuario usuario = actorContextService.obtenerActorActual();
+        Usuario administrativo = actorContextService.obtenerActorActual();
+
+        if (request.getObservacionCierre() == null || request.getObservacionCierre().trim().isEmpty()) {
+            throw new co.edu.uniquindio.poo.exception.OperacionNoPermitidaException("La observación de cierre es obligatoria (RF-08).");
+        }
 
         // RF-08: Verificar que la solicitud esté en estado ATENDIDA
         if (solicitud.getEstado() != EstadoSolicitud.ATENDIDA) {
-            throw new TransicionInvalidaException(
-                    "Solo se pueden cerrar solicitudes en estado ATENDIDA. Estado actual: "
-                            + solicitud.getEstado().getDescripcion());
+            throw new co.edu.uniquindio.poo.exception.OperacionNoPermitidaException("Solo se pueden cerrar solicitudes en estado ATENDIDA.");
         }
 
         // Aplicar cierre
@@ -297,7 +312,7 @@ public class SolicitudService {
     @Transactional(readOnly = true)
     public List<SolicitudResponseDTO> consultarConFiltros(
             EstadoSolicitud estado,
-            TipoSolicitud tipo,
+            String tipo,
             Prioridad prioridad,
             Long responsableId) {
         List<Solicitud> solicitudes = solicitudRepository.buscarConFiltros(
@@ -359,7 +374,7 @@ public class SolicitudService {
         @Transactional(readOnly = true)
         public PageResponseDTO<SolicitudResponseDTO> consultarConFiltrosPaginado(
             EstadoSolicitud estado,
-            TipoSolicitud tipo,
+            String tipo,
             Prioridad prioridad,
             Long responsableId,
             int page,
@@ -408,6 +423,18 @@ public class SolicitudService {
             throw new TransicionInvalidaException(
                     solicitud.getEstado().getDescripcion(),
                     nuevoEstado.getDescripcion());
+        }
+
+        // RF-04/05: Validaciones de negocio específicas para transiciones
+        if (nuevoEstado == EstadoSolicitud.EN_ATENCION) {
+            if (solicitud.getResponsable() == null) {
+                throw new OperacionNoPermitidaException(
+                        "No se puede iniciar la atención (EN_ATENCION) sin un RESPONSABLE asignado.");
+            }
+            if (solicitud.getPrioridad() == null) {
+                throw new OperacionNoPermitidaException(
+                        "No se puede iniciar la atención (EN_ATENCION) sin haber definido una PRIORIDAD.");
+            }
         }
     }
 

@@ -5,10 +5,12 @@ import { environment } from '../../environments/environment';
 import { ApiResponse } from '../models';
 
 export interface SugerenciaIAResponseDTO {
-  tipoSugerido: string;
+  tipoSolicitudSugerido: string;
   prioridadSugerida: string;
-  resumen: string;
-  razonamiento: string;
+  sugerenciaRespuesta: string;
+  resumenHistorial: string;
+  justificacionIA: string;
+  modeloUtilizado?: string;
 }
 
 @Injectable({ providedIn: 'root' })

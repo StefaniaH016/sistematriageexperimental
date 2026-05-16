@@ -28,7 +28,7 @@ class PriorizacionServiceTest {
     @DisplayName("RF-03: Registro de asignaturas con fecha límite cercana → Prioridad CRITICA")
     void registroAsignaturasConFechaLimiteCercana_DebeSerCritica() {
         Solicitud solicitud = Solicitud.builder()
-                .tipoSolicitud(TipoSolicitud.REGISTRO_ASIGNATURAS)
+                .tipoSolicitud("Registro de asignaturas")
                 .fechaLimite(LocalDate.now().plusDays(1))
                 .build();
 
@@ -41,7 +41,7 @@ class PriorizacionServiceTest {
     @DisplayName("RF-03: Consulta académica sin fecha límite → Prioridad BAJA")
     void consultaAcademicaSinFechaLimite_DebeSerBaja() {
         Solicitud solicitud = Solicitud.builder()
-                .tipoSolicitud(TipoSolicitud.CONSULTA_ACADEMICA)
+                .tipoSolicitud("Consulta académica")
                 .fechaLimite(null)
                 .build();
 
@@ -53,7 +53,7 @@ class PriorizacionServiceTest {
     @DisplayName("RF-03: Cancelación con fecha vencida → Prioridad CRITICA")
     void cancelacionConFechaVencida_DebeSerCritica() {
         Solicitud solicitud = Solicitud.builder()
-                .tipoSolicitud(TipoSolicitud.CANCELACION_ASIGNATURAS)
+                .tipoSolicitud("Cancelación de asignaturas")
                 .fechaLimite(LocalDate.now().minusDays(1))
                 .build();
 
@@ -65,7 +65,7 @@ class PriorizacionServiceTest {
     @DisplayName("RF-03: Homologación con fecha lejana → Prioridad MEDIA")
     void homologacionConFechaLejana_DebeSerMedia() {
         Solicitud solicitud = Solicitud.builder()
-                .tipoSolicitud(TipoSolicitud.HOMOLOGACION)
+                .tipoSolicitud("Homologación")
                 .fechaLimite(LocalDate.now().plusDays(30))
                 .build();
 
@@ -78,7 +78,7 @@ class PriorizacionServiceTest {
     @DisplayName("RF-03: La justificación nunca es nula")
     void justificacionNuncaEsNula() {
         Solicitud solicitud = Solicitud.builder()
-                .tipoSolicitud(TipoSolicitud.SOLICITUD_CUPOS)
+                .tipoSolicitud("Solicitud de cupos")
                 .build();
 
         Object[] resultado = priorizacionService.calcularPrioridad(solicitud);
@@ -90,7 +90,7 @@ class PriorizacionServiceTest {
     @DisplayName("RF-03: Señales semánticas de urgencia elevan la prioridad")
     void descripcionConUrgencia_DebeElevarPrioridad() {
         Solicitud solicitud = Solicitud.builder()
-                .tipoSolicitud(TipoSolicitud.CONSULTA_ACADEMICA)
+                .tipoSolicitud("Consulta académica")
                 .descripcion("Caso urgente por cierre de matricula inminente")
                 .build();
 

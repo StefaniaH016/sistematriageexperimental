@@ -55,12 +55,12 @@ import {
           </div>
           <div class="filter-group">
             <label>Tipo</label>
-            <select [(ngModel)]="filtroTipo" (change)="aplicarFiltros()">
-              <option value="">Todos los tipos</option>
+            <input type="text" [(ngModel)]="filtroTipo" (change)="aplicarFiltros()" placeholder="Filtrar por tipo..." class="filter-input" list="tipos-comunes-filtro">
+            <datalist id="tipos-comunes-filtro">
               @for (t of tipos; track t) {
-                <option [value]="t">{{ tipoLabel(t) }}</option>
+                <option [value]="tipoLabel(t)">
               }
-            </select>
+            </datalist>
           </div>
           <div class="filter-group">
             <label>Prioridad</label>
@@ -117,13 +117,13 @@ import {
                 </div>
                 <h3 class="card-title">{{ s.titulo }}</h3>
                 <div class="card-meta">
-                  @if (s.tipo) {
+                  @if (s.tipoSolicitud) {
                     <span class="meta-item">
                       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z"/>
                         <line x1="7" y1="7" x2="7.01" y2="7"/>
                       </svg>
-                      {{ tipoLabel(s.tipo) }}
+                      {{ s.tipoSolicitud }}
                     </span>
                   }
                   <span class="meta-item">
@@ -293,7 +293,8 @@ import {
       color: var(--color-text-secondary, #6b6b6b);
     }
 
-    .filter-group select {
+    .filter-group select,
+    .filter-input {
       padding: 0.6rem 0.75rem;
       border: 1px solid var(--color-border, #e0dcd5);
       border-radius: 8px;
@@ -302,9 +303,11 @@ import {
       color: var(--color-text, #3d3d3d);
       cursor: pointer;
       transition: border-color 0.2s ease;
+      width: 100%;
     }
 
-    .filter-group select:focus {
+    .filter-group select:focus,
+    .filter-input:focus {
       outline: none;
       border-color: var(--color-primary, #8b7355);
     }
@@ -600,8 +603,10 @@ export class SolicitudListComponent implements OnInit, OnDestroy {
     this.cargarSolicitudes();
   }
 
-  estadoLabel(e: EstadoSolicitud): string { return ESTADO_LABELS[e] || e; }
-  tipoLabel(t: TipoSolicitud): string { return TIPO_SOLICITUD_LABELS[t] || t; }
-  prioridadLabel(p: Prioridad): string { return PRIORIDAD_LABELS[p] || p; }
-  canalLabel(c: CanalOrigen): string { return CANAL_LABELS[c] || c; }
+  estadoLabel(e: any): string { return ESTADO_LABELS[e as EstadoSolicitud] || e; }
+  tipoLabel(t: any): string { 
+    return TIPO_SOLICITUD_LABELS[t as TipoSolicitud] || t; 
+  }
+  prioridadLabel(p: any): string { return PRIORIDAD_LABELS[p as Prioridad] || p; }
+  canalLabel(c: any): string { return CANAL_LABELS[c as CanalOrigen] || c; }
 }

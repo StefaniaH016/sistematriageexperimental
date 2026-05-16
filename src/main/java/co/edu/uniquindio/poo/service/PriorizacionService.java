@@ -47,34 +47,35 @@ public class PriorizacionService {
     /**
      * Calcula el puntaje basado en el tipo de solicitud.
      */
-    private int calcularPuntajePorTipo(TipoSolicitud tipo, StringBuilder justificacion) {
-        if (tipo == null) {
+    private int calcularPuntajePorTipo(String tipo, StringBuilder justificacion) {
+        if (tipo == null || tipo.isBlank()) {
             justificacion.append("Sin tipo de solicitud asignado. ");
             return 0;
         }
 
-        return switch (tipo) {
-            case REGISTRO_ASIGNATURAS -> {
-                justificacion.append("Registro de asignaturas: impacto alto en matrícula (+4). ");
-                yield 4;
-            }
-            case CANCELACION_ASIGNATURAS -> {
-                justificacion.append("Cancelación de asignaturas: impacto alto en matrícula (+4). ");
-                yield 4;
-            }
-            case HOMOLOGACION -> {
-                justificacion.append("Homologación: impacto medio en plan de estudios (+3). ");
-                yield 3;
-            }
-            case SOLICITUD_CUPOS -> {
-                justificacion.append("Solicitud de cupos: impacto medio en matrícula (+2). ");
-                yield 2;
-            }
-            case CONSULTA_ACADEMICA -> {
-                justificacion.append("Consulta académica: bajo impacto operativo (+1). ");
-                yield 1;
-            }
-        };
+        String t = tipo.toLowerCase();
+        if (t.contains("registro") || t.contains("cancelacion") || t.contains("materia") || t.contains("asignatura")) {
+            justificacion.append("Trámite de asignaturas: impacto alto en matrícula (+4). ");
+            return 4;
+        } else if (t.contains("homologa") || t.contains("reconocimiento")) {
+            justificacion.append("Homologación: impacto medio en plan de estudios (+3). ");
+            return 3;
+        } else if (t.contains("cupo") || t.contains("sobrecupo")) {
+            justificacion.append("Solicitud de cupos: impacto medio en matrícula (+2). ");
+            return 2;
+        } else if (t.contains("supletorio") || t.contains("examen")) {
+            justificacion.append("Examen supletorio: impacto alto por fechas (+4). ");
+            return 4;
+        } else if (t.contains("reingreso") || t.contains("reserva")) {
+            justificacion.append("Trámite de permanencia: impacto medio (+3). ");
+            return 3;
+        } else if (t.contains("certificado")) {
+            justificacion.append("Trámite documental: impacto bajo (+1). ");
+            return 1;
+        } else {
+            justificacion.append("Otras consultas: impacto bajo (+1). ");
+            return 1;
+        }
     }
 
     /**
