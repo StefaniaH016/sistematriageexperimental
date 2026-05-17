@@ -60,9 +60,18 @@ export class DashboardComponent implements OnInit, OnDestroy {
     this.refreshSub?.unsubscribe();
   }
 
+  /** Devuelve el observable correcto según el rol del usuario autenticado. */
+  private obtenerFuenteDatos() {
+    const rol = this.authService.getRol();
+    if (rol === 'RESPONSABLE') {
+      return this.solicitudService.listarPanelResponsable();
+    }
+    return this.solicitudService.listarMias();
+  }
+
   cargar(): void {
     this.cargando = true;
-    this.solicitudService.listarTodas().pipe(
+    this.obtenerFuenteDatos().pipe(
       finalize(() => {
         this.cargando = false;
         this.cdr.markForCheck();

@@ -2,7 +2,13 @@
   <header class="page-header">
     <div>
       <h1 class="page-title">Dashboard</h1>
-      <p class="page-subtitle">Resumen del sistema de solicitudes académicas</p>
+      @if (authService.getRol() === 'RESPONSABLE') {
+        <p class="page-subtitle">Tus solicitudes asignadas y las pendientes de asignación</p>
+      } @else if (authService.getRol() === 'ADMINISTRATIVO') {
+        <p class="page-subtitle">Resumen general del sistema de solicitudes académicas</p>
+      } @else {
+        <p class="page-subtitle">Resumen de tus solicitudes académicas</p>
+      }
     </div>
     <div class="header-actions">
       <button class="btn-refresh" (click)="cargar()" [disabled]="cargando" title="Actualizar datos">
@@ -121,7 +127,13 @@
     <!-- Recent Requests -->
     <div class="card">
       <div class="card-header">
-        <h2>Solicitudes Recientes</h2>
+        @if (authService.getRol() === 'RESPONSABLE') {
+          <h2>Recientes (Asignadas + Sin Asignar)</h2>
+        } @else if (authService.getRol() === 'ADMINISTRATIVO') {
+          <h2>Solicitudes Recientes del Sistema</h2>
+        } @else {
+          <h2>Mis Solicitudes Recientes</h2>
+        }
         <a routerLink="/solicitudes" class="view-all">Ver todas →</a>
       </div>
       <div class="card-body">
@@ -131,8 +143,12 @@
               <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/>
               <rect x="9" y="3" width="6" height="4" rx="1"/>
             </svg>
-            <p>No hay solicitudes registradas</p>
-            @if (authService.currentUserValue?.rol === 'ESTUDIANTE') {
+            @if (authService.getRol() === 'RESPONSABLE') {
+              <p>No tienes solicitudes asignadas ni hay solicitudes sin responsable</p>
+            } @else if (authService.getRol() === 'ADMINISTRATIVO') {
+              <p>No hay solicitudes registradas en el sistema</p>
+            } @else {
+              <p>No tienes solicitudes registradas aún</p>
               <a routerLink="/solicitudes/nueva" class="btn-link">Crear primera solicitud</a>
             }
           </div>

@@ -47,7 +47,7 @@ export class SolicitudListComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.cargarSolicitudes();
-    
+
     // Recargar datos cada vez que se navega A esta ruta
     this.routerSub = this.router.events.pipe(
       filter(event => event instanceof NavigationEnd)
@@ -62,9 +62,19 @@ export class SolicitudListComponent implements OnInit, OnDestroy {
     this.routerSub?.unsubscribe();
   }
 
+  /** Devuelve el observable correcto según el rol del usuario autenticado. */
+  private obtenerFuenteDatos() {
+    const rol = this.authService.getRol();
+    if (rol === 'RESPONSABLE') {
+      return this.solicitudService.listarPanelResponsable();
+    }
+    // ESTUDIANTE, DOCENTE → solo las propias; ADMINISTRATIVO → todas (backend lo decide)
+    return this.solicitudService.listarMias();
+  }
+
   cargarSolicitudes(): void {
     this.cargando = true;
-    this.solicitudService.listarTodas().pipe(
+    this.obtenerFuenteDatos().pipe(
       finalize(() => {
         this.cargando = false;
         this.cdr.markForCheck();
@@ -85,6 +95,17 @@ export class SolicitudListComponent implements OnInit, OnDestroy {
     if (this.filtroTipo) filtros.tipo = this.filtroTipo;
     if (this.filtroPrioridad) filtros.prioridad = this.filtroPrioridad;
 
+    // Si no hay filtros activos, volver a la fuente correcta por rol
+    if (!filtros.estado && !filtros.tipo && !filtros.prioridad) {
+      this.obtenerFuenteDatos().pipe(
+        finalize(() => { this.cargando = false; this.cdr.markForCheck(); })
+      ).subscribe({
+        next: res => { this.solicitudes = res.exitoso ? res.datos : []; this.cdr.markForCheck(); },
+        error: (err) => { console.error('Error al cargar solicitudes:', err); }
+      });
+      return;
+    }
+
     this.solicitudService.listar(filtros).pipe(
       finalize(() => {
         this.cargando = false;
@@ -92,7 +113,18 @@ export class SolicitudListComponent implements OnInit, OnDestroy {
       })
     ).subscribe({
       next: res => {
-        this.solicitudes = res.exitoso ? res.datos : [];
+        // Filtrar client-side para respetar el alcance del rol
+        const rol = this.authService.getRol();
+        const userId = this.authService.getUserId();
+        let datos: SolicitudResponse[] = res.exitoso ? res.datos : [];
+
+        if (rol === 'ESTUDIANTE' || rol === 'DOCENTE') {
+          datos = datos.filter(s => s.solicitante?.id === userId);
+        } else if (rol === 'RESPONSABLE') {
+          datos = datos.filter(s => !s.responsable || s.responsable?.id === userId);
+        }
+
+        this.solicitudes = datos;
         this.cdr.markForCheck();
       },
       error: (err) => {
@@ -109,8 +141,8 @@ export class SolicitudListComponent implements OnInit, OnDestroy {
   }
 
   estadoLabel(e: any): string { return ESTADO_LABELS[e as EstadoSolicitud] || e; }
-  tipoLabel(t: any): string { 
-    return TIPO_SOLICITUD_LABELS[t as TipoSolicitud] || t; 
+  tipoLabel(t: any): string {
+    return TIPO_SOLICITUD_LABELS[t as TipoSolicitud] || t;
   }
   prioridadLabel(p: any): string { return PRIORIDAD_LABELS[p as Prioridad] || p; }
   canalLabel(c: any): string { return CANAL_LABELS[c as CanalOrigen] || c; }

@@ -157,7 +157,12 @@ public class UsuarioService {
         usuario.setApellido(request.getApellido());
         usuario.setEmail(request.getEmail());
         usuario.setRol(request.getRol());
-        // No actualizamos el password aquí por seguridad, se requeriría otro endpoint si se desea cambiar.
+
+        // Si el admin proporcionó una nueva contraseña, codificarla y guardarla.
+        // Si el campo viene vacío, conservar la contraseña actual sin cambios.
+        if (request.getPassword() != null && !request.getPassword().isBlank()) {
+            usuario.setPassword(passwordEncoder.encode(request.getPassword()));
+        }
 
         usuario = usuarioRepository.save(usuario);
         return mapper.toUsuarioDTO(usuario);

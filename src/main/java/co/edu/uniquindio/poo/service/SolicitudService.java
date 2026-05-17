@@ -346,6 +346,34 @@ public class SolicitudService {
     }
 
     /**
+     * Retorna únicamente las solicitudes del solicitante autenticado (ESTUDIANTE / DOCENTE).
+     * Un ADMINISTRATIVO ve todas.
+     */
+    @Transactional(readOnly = true)
+    public List<SolicitudResponseDTO> obtenerMisSolicitudes() {
+        Usuario actor = actorContextService.obtenerActorActual();
+        if (actor.getRol() == Rol.ADMINISTRATIVO) {
+            return mapper.toSolicitudDTOList(solicitudRepository.findAll());
+        }
+        return mapper.toSolicitudDTOList(solicitudRepository.findBySolicitanteId(actor.getId()));
+    }
+
+    /**
+     * Panel del responsable: solicitudes que tiene asignadas MÁS las que aún
+     * no tienen responsable (sin asignar).
+     * Un ADMINISTRATIVO ve todas.
+     */
+    @Transactional(readOnly = true)
+    public List<SolicitudResponseDTO> obtenerPanelResponsable() {
+        Usuario actor = actorContextService.obtenerActorActual();
+        if (actor.getRol() == Rol.ADMINISTRATIVO) {
+            return mapper.toSolicitudDTOList(solicitudRepository.findAll());
+        }
+        return mapper.toSolicitudDTOList(
+                solicitudRepository.findByResponsableIdOrUnassigned(actor.getId()));
+    }
+
+    /**
      * RF-06: Consulta el historial auditable de una solicitud específica.
      * Retorna las acciones en orden cronológico sin cargar la solicitud completa.
      */

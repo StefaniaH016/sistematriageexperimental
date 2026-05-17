@@ -237,4 +237,31 @@ public class SolicitudController {
         return ResponseEntity.ok(ApiResponseDTO.exitoso(
                 "Solicitudes del responsable", response));
     }
+
+    /**
+     * Retorna las solicitudes propias del usuario autenticado.
+     * - ESTUDIANTE / DOCENTE: solo sus solicitudes registradas.
+     * - ADMINISTRATIVO: todas las solicitudes del sistema.
+     */
+    @Operation(summary = "Mis solicitudes", description = "Retorna las solicitudes registradas por el usuario autenticado")
+    @GetMapping("/mis-solicitudes")
+    public ResponseEntity<ApiResponseDTO<List<SolicitudResponseDTO>>> misSolicitudes() {
+        List<SolicitudResponseDTO> response = solicitudService.obtenerMisSolicitudes();
+        return ResponseEntity.ok(ApiResponseDTO.exitoso(
+                "Se encontraron " + response.size() + " solicitudes", response));
+    }
+
+    /**
+     * Panel del responsable autenticado: solicitudes asignadas a él + sin asignar.
+     * - RESPONSABLE: sus solicitudes + las sin responsable.
+     * - ADMINISTRATIVO: todas.
+     */
+    @Operation(summary = "Panel responsable", description = "Retorna solicitudes asignadas al responsable autenticado y las sin asignar")
+    @GetMapping("/panel-responsable")
+    public ResponseEntity<ApiResponseDTO<List<SolicitudResponseDTO>>> panelResponsable() {
+        List<SolicitudResponseDTO> response = solicitudService.obtenerPanelResponsable();
+        return ResponseEntity.ok(ApiResponseDTO.exitoso(
+                "Panel responsable: " + response.size() + " solicitudes", response));
+    }
 }
+

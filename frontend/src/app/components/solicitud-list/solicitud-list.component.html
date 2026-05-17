@@ -2,7 +2,13 @@
   <div class="page-header">
     <div class="header-content">
       <h1 class="page-title">Solicitudes</h1>
-      <p class="page-subtitle">Gestiona y da seguimiento a las solicitudes académicas</p>
+      @if (authService.getRol() === 'RESPONSABLE') {
+        <p class="page-subtitle">Solicitudes asignadas a ti y solicitudes sin responsable</p>
+      } @else if (authService.getRol() === 'ADMINISTRATIVO') {
+        <p class="page-subtitle">Todas las solicitudes académicas del sistema</p>
+      } @else {
+        <p class="page-subtitle">Tus solicitudes académicas registradas</p>
+      }
     </div>
     <div class="header-actions">
       <button class="btn btn-refresh" (click)="cargarSolicitudes()" [disabled]="cargando" title="Actualizar lista">
@@ -69,7 +75,11 @@
           <rect x="9" y="3" width="6" height="4" rx="1"/>
         </svg>
         <h3>No hay solicitudes</h3>
-        @if (authService.currentUserValue?.rol === 'ESTUDIANTE') {
+        @if (authService.getRol() === 'RESPONSABLE') {
+          <p>No tienes solicitudes asignadas ni hay solicitudes sin responsable</p>
+        } @else if (authService.getRol() === 'ADMINISTRATIVO') {
+          <p>No hay solicitudes registradas en el sistema</p>
+        } @else {
           <p>Crea una nueva solicitud para comenzar</p>
         }
       </div>

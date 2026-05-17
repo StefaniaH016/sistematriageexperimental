@@ -83,4 +83,14 @@ export class SolicitudService {
   listarTodas(): Observable<ApiResponse<SolicitudResponse[]>> {
     return this.http.get<ApiResponse<SolicitudResponse[]>>(this.url);
   }
+
+  /** Mis solicitudes (filtrado por rol en el backend) */
+  listarMias(): Observable<ApiResponse<SolicitudResponse[]>> {
+    return this.http.get<ApiResponse<SolicitudResponse[]>>(`${this.url}/mis-solicitudes`);
+  }
+
+  /** Panel responsable: asignadas a mí + sin asignar */
+  listarPanelResponsable(): Observable<ApiResponse<SolicitudResponse[]>> {
+    return this.http.get<ApiResponse<SolicitudResponse[]>>(`${this.url}/panel-responsable`);
+  }
 }

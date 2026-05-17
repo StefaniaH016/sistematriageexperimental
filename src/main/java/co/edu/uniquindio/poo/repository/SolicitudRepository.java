@@ -59,6 +59,13 @@ public interface SolicitudRepository extends JpaRepository<Solicitud, Long> {
                         @Param("responsableId") Long responsableId,
                         Pageable pageable);
 
+        /**
+         * Para el panel del responsable: solicitudes que le fueron asignadas
+         * o que aún no tienen responsable asignado.
+         */
+        @Query("SELECT s FROM Solicitud s WHERE s.responsable.id = :responsableId OR s.responsable IS NULL")
+        List<Solicitud> findByResponsableIdOrUnassigned(@Param("responsableId") Long responsableId);
+
         /** Contar solicitudes por estado */
         long countByEstado(EstadoSolicitud estado);
 }
