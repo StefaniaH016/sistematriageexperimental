@@ -148,7 +148,7 @@ class UsuarioServiceTest {
                 .nombre("Para")
                 .apellido("Desactivar")
                 .email("para.desactivar@uq.edu.co")
-                .rol(Rol.DOCENTE)
+                .rol(Rol.RESPONSABLE)
                 .password("password123")
                 .build();
         UsuarioResponseDTO creado = usuarioService.registrarUsuario(request);

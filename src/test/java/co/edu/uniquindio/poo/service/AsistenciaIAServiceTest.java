@@ -195,8 +195,8 @@ class AsistenciaIAServiceTest {
 
         SugerenciaIAResponseDTO resultado = asistenciaIAService.obtenerSugerencia(11L, null);
 
-        assertNotNull(resultado.getSugerenciaRespuesta());
-        assertFalse(resultado.getSugerenciaRespuesta().isEmpty());
-        assertTrue(resultado.getSugerenciaRespuesta().contains("Estimado"));
+        assertNotNull(resultado.getSugerenciaEnAtencion());
+        assertFalse(resultado.getSugerenciaEnAtencion().isEmpty());
+        assertTrue(resultado.getSugerenciaEnAtencion().contains("Estimado"));
     }
 }

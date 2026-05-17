@@ -81,8 +81,10 @@ public class AsistenciaIAService {
                     .tipoSolicitudSugerido(tipoSugeridoRaw)
                     .prioridadSugerida(parsePrioridad(prioridadRaw, sugerenciaBase.getPrioridadSugerida()))
                     .resumenHistorial(jsonRes.optString("resumenHistorial", sugerenciaBase.getResumenHistorial()))
-                    .sugerenciaClasificar(jsonRes.optString("sugerenciaClasificar", sugerenciaBase.getSugerenciaClasificar()))
-                    .sugerenciaEnAtencion(jsonRes.optString("sugerenciaEnAtencion", sugerenciaBase.getSugerenciaEnAtencion()))
+                    .sugerenciaClasificar(
+                            jsonRes.optString("sugerenciaClasificar", sugerenciaBase.getSugerenciaClasificar()))
+                    .sugerenciaEnAtencion(
+                            jsonRes.optString("sugerenciaEnAtencion", sugerenciaBase.getSugerenciaEnAtencion()))
                     .sugerenciaAtendida(jsonRes.optString("sugerenciaAtendida", sugerenciaBase.getSugerenciaAtendida()))
                     .sugerenciaCierre(jsonRes.optString("sugerenciaCierre", sugerenciaBase.getSugerenciaCierre()))
                     .justificacionIA(jsonRes.optString("justificacionIA", sugerenciaBase.getJustificacionIA()))
@@ -107,124 +109,146 @@ public class AsistenciaIAService {
         String tipoSugerido = TipoSolicitud.CONSULTA_ACADEMICA.name();
         Prioridad prioridadSugerida = Prioridad.MEDIA;
 
+        boolean yaClasificada = false;
+        if (solicitud.getTipoSolicitud() != null && !solicitud.getTipoSolicitud().isEmpty()) {
+            for (TipoSolicitud t : TipoSolicitud.values()) {
+                if (t.getDescripcion().equalsIgnoreCase(solicitud.getTipoSolicitud()) || t.name().equalsIgnoreCase(solicitud.getTipoSolicitud())) {
+                    tipoSugerido = t.name();
+                    yaClasificada = true;
+                    break;
+                }
+            }
+        }
+
+        boolean yaPriorizada = false;
+        if (solicitud.getPrioridad() != null) {
+            prioridadSugerida = solicitud.getPrioridad();
+            yaPriorizada = true;
+        }
+
         // --- Reglas de clasificación por palabras clave (RF-02 extendido) ---
-
-        // Cancelación de semestre (debe ir antes que cancelación de asignaturas)
-        if (content.contains("semestre")
-                && (content.contains("cancel") || content.contains("retir") || content.contains("abandon"))) {
-            tipoSugerido = TipoSolicitud.CANCELACION_SEMESTRE.name();
-            prioridadSugerida = Prioridad.ALTA;
-        }
-        // Modificación de matrícula
-        else if ((content.contains("modifica") || content.contains("cambio"))
-                && (content.contains("matrícula") || content.contains("matricula"))) {
-            tipoSugerido = TipoSolicitud.MODIFICACION_MATRICULA.name();
-            prioridadSugerida = Prioridad.ALTA;
-        }
-        // Registro de asignaturas
-        else if (content.contains("registro") && (content.contains("asignatura") || content.contains("materia"))) {
-            tipoSugerido = TipoSolicitud.REGISTRO_ASIGNATURAS.name();
-        }
-        // Cancelación de asignaturas
-        else if ((content.contains("cancel") || content.contains("retir"))
-                && (content.contains("asignatura") || content.contains("materia"))) {
-            tipoSugerido = TipoSolicitud.CANCELACION_ASIGNATURAS.name();
-        }
-        // Homologación
-        else if (content.contains("homologa") || content.contains("reconocimiento de crédito")
-                || content.contains("reconocimiento de credito")) {
-            tipoSugerido = TipoSolicitud.HOMOLOGACION.name();
-        }
-        // Examen supletorio o habilitación
-        else if (content.contains("habilitación") || content.contains("habilitacion")
-                || content.contains("habilitar") || content.contains("recuperar") || content.contains("recuperación")) {
-            tipoSugerido = TipoSolicitud.HABILITACION.name();
-            prioridadSugerida = Prioridad.ALTA;
-        } else if (content.contains("supletorio") || (content.contains("examen") && content.contains("perdi"))
-                || content.contains("examen supletorio")) {
-            tipoSugerido = TipoSolicitud.EXAMEN_SUPLETORIO.name();
-            prioridadSugerida = Prioridad.ALTA;
-        }
-        // Cupos
-        else if (content.contains("cupo") || content.contains("sobrecupo")) {
-            tipoSugerido = TipoSolicitud.SOLICITUD_CUPOS.name();
-        }
-        // Apoyo económico / becas
-        else if (content.contains("apoyo económico") || content.contains("apoyo economico")
-                || content.contains("subsidio") || content.contains("dificultad econ")) {
-            tipoSugerido = TipoSolicitud.APOYO_ECONOMICO.name();
-        } else if (content.contains("beca") || content.contains("descuento") || content.contains("media beca")) {
-            tipoSugerido = TipoSolicitud.BECA_DESCUENTO.name();
-        }
-        // Apoyo psicosocial
-        else if (content.contains("psicolog") || content.contains("bienestar") || content.contains("ansiedad")
-                || content.contains("estrés") || content.contains("salud mental")) {
-            tipoSugerido = TipoSolicitud.APOYO_PSICOSOCIAL.name();
-        }
-        // Trabajo de grado
-        else if (content.contains("trabajo de grado") || content.contains("tesis")
-                || content.contains("proyecto de grado")) {
-            tipoSugerido = TipoSolicitud.TRABAJO_GRADO.name();
-        }
-        // Práctica empresarial
-        else if (content.contains("práctica") || content.contains("practica") || content.contains("pasantía")
-                || content.contains("pasantia")) {
-            tipoSugerido = TipoSolicitud.PRACTICA_EMPRESARIAL.name();
-        }
-        // Certificados y documentos
-        else if (content.contains("certificado") || content.contains("constancia")) {
-            tipoSugerido = TipoSolicitud.CERTIFICADO_ESTUDIOS.name();
-        } else if (content.contains("paz y salvo") || content.contains("paz&salvo")) {
-            tipoSugerido = TipoSolicitud.PAZ_Y_SALVO.name();
-        } else if (content.contains("acta de grado") || content.contains("grado") || content.contains("graduac")) {
-            tipoSugerido = TipoSolicitud.ACTA_GRADO.name();
-        }
-        // Reingreso y reserva de cupo
-        else if (content.contains("reserva") && content.contains("cupo")) {
-            tipoSugerido = TipoSolicitud.RESERVA_CUPO.name();
-        } else if (content.contains("reingreso") || content.contains("volver") || content.contains("retomar")) {
-            tipoSugerido = TipoSolicitud.REINGRESO.name();
-        }
-        // Transferencia interna
-        else if (content.contains("transferencia") || content.contains("cambio de programa")
-                || content.contains("cambio de carrera")) {
-            tipoSugerido = TipoSolicitud.TRANSFERENCIA_INTERNA.name();
-        }
-        // Proceso disciplinario
-        else if (content.contains("disciplinar") || content.contains("apelación") || content.contains("apelacion")
-                || content.contains("sanc")) {
-            tipoSugerido = TipoSolicitud.PROCESO_DISCIPLINARIO.name();
-            prioridadSugerida = Prioridad.ALTA;
-        }
-        // Reconocimiento de créditos
-        else if (content.contains("reconocimiento") || content.contains("créditos adicionales")) {
-            tipoSugerido = TipoSolicitud.RECONOCIMIENTO_CREDITOS.name();
-        }
-
-        // Reglas de prioridad por fecha o urgencia (RF-03)
-        if (solicitud.getFechaLimite() != null) {
-            long dias = ChronoUnit.DAYS.between(LocalDate.now(), solicitud.getFechaLimite());
-            if (dias <= 2)
-                prioridadSugerida = Prioridad.CRITICA;
-            else if (dias <= 5)
+        if (!yaClasificada) {
+            // Cancelación de semestre (debe ir antes que cancelación de asignaturas)
+            if (content.contains("semestre")
+                    && (content.contains("cancel") || content.contains("retir") || content.contains("abandon"))) {
+                tipoSugerido = TipoSolicitud.CANCELACION_SEMESTRE.name();
                 prioridadSugerida = Prioridad.ALTA;
+            }
+            // Modificación de matrícula
+            else if ((content.contains("modifica") || content.contains("cambio"))
+                    && (content.contains("matrícula") || content.contains("matricula"))) {
+                tipoSugerido = TipoSolicitud.MODIFICACION_MATRICULA.name();
+                prioridadSugerida = Prioridad.ALTA;
+            }
+            // Registro de asignaturas
+            else if (content.contains("registro") && (content.contains("asignatura") || content.contains("materia"))) {
+                tipoSugerido = TipoSolicitud.REGISTRO_ASIGNATURAS.name();
+            }
+            // Cancelación de asignaturas
+            else if ((content.contains("cancel") || content.contains("retir"))
+                    && (content.contains("asignatura") || content.contains("materia"))) {
+                tipoSugerido = TipoSolicitud.CANCELACION_ASIGNATURAS.name();
+            }
+            // Homologación
+            else if (content.contains("homologa") || content.contains("reconocimiento de crédito")
+                    || content.contains("reconocimiento de credito")) {
+                tipoSugerido = TipoSolicitud.HOMOLOGACION.name();
+            }
+            // Examen supletorio o habilitación
+            else if (content.contains("habilitación") || content.contains("habilitacion")
+                    || content.contains("habilitar") || content.contains("recuperar") || content.contains("recuperación")) {
+                tipoSugerido = TipoSolicitud.HABILITACION.name();
+                prioridadSugerida = Prioridad.ALTA;
+            } else if (content.contains("supletorio") || (content.contains("examen") && content.contains("perdi"))
+                    || content.contains("examen supletorio")) {
+                tipoSugerido = TipoSolicitud.EXAMEN_SUPLETORIO.name();
+                prioridadSugerida = Prioridad.ALTA;
+            }
+            // Cupos
+            else if (content.contains("cupo") || content.contains("sobrecupo")) {
+                tipoSugerido = TipoSolicitud.SOLICITUD_CUPOS.name();
+            }
+            // Apoyo económico / becas
+            else if (content.contains("apoyo económico") || content.contains("apoyo economico")
+                    || content.contains("subsidio") || content.contains("dificultad econ")) {
+                tipoSugerido = TipoSolicitud.APOYO_ECONOMICO.name();
+            } else if (content.contains("beca") || content.contains("descuento") || content.contains("media beca")) {
+                tipoSugerido = TipoSolicitud.BECA_DESCUENTO.name();
+            }
+            // Apoyo psicosocial
+            else if (content.contains("psicolog") || content.contains("bienestar") || content.contains("ansiedad")
+                    || content.contains("estrés") || content.contains("salud mental")) {
+                tipoSugerido = TipoSolicitud.APOYO_PSICOSOCIAL.name();
+            }
+            // Trabajo de grado
+            else if (content.contains("trabajo de grado") || content.contains("tesis")
+                    || content.contains("proyecto de grado")) {
+                tipoSugerido = TipoSolicitud.TRABAJO_GRADO.name();
+            }
+            // Práctica empresarial
+            else if (content.contains("práctica") || content.contains("practica") || content.contains("pasantía")
+                    || content.contains("pasantia")) {
+                tipoSugerido = TipoSolicitud.PRACTICA_EMPRESARIAL.name();
+            }
+            // Certificados y documentos
+            else if (content.contains("certificado") || content.contains("constancia")) {
+                tipoSugerido = TipoSolicitud.CERTIFICADO_ESTUDIOS.name();
+            } else if (content.contains("paz y salvo") || content.contains("paz&salvo")) {
+                tipoSugerido = TipoSolicitud.PAZ_Y_SALVO.name();
+            } else if (content.contains("acta de grado") || content.contains("grado") || content.contains("graduac")) {
+                tipoSugerido = TipoSolicitud.ACTA_GRADO.name();
+            }
+            // Reingreso y reserva de cupo
+            else if (content.contains("reserva") && content.contains("cupo")) {
+                tipoSugerido = TipoSolicitud.RESERVA_CUPO.name();
+            } else if (content.contains("reingreso") || content.contains("volver") || content.contains("retomar")) {
+                tipoSugerido = TipoSolicitud.REINGRESO.name();
+            }
+            // Transferencia interna
+            else if (content.contains("transferencia") || content.contains("cambio de programa")
+                    || content.contains("cambio de carrera")) {
+                tipoSugerido = TipoSolicitud.TRANSFERENCIA_INTERNA.name();
+            }
+            // Proceso disciplinario
+            else if (content.contains("disciplinar") || content.contains("apelación") || content.contains("apelacion")
+                    || content.contains("sanc")) {
+                tipoSugerido = TipoSolicitud.PROCESO_DISCIPLINARIO.name();
+                prioridadSugerida = Prioridad.ALTA;
+            }
+            // Reconocimiento de créditos
+            else if (content.contains("reconocimiento") || content.contains("créditos adicionales")) {
+                tipoSugerido = TipoSolicitud.RECONOCIMIENTO_CREDITOS.name();
+            }
         }
-        if (content.contains("urgente") || content.contains("auxilio") || content.contains("inmediato")
-                || content.contains("inminente")) {
-            prioridadSugerida = Prioridad.ALTA;
+
+        if (!yaPriorizada) {
+            if (content.contains("urgente") || content.contains("auxilio") || content.contains("inmediato")
+                    || content.contains("inminente")) {
+                prioridadSugerida = Prioridad.ALTA;
+            }
+            // Reglas de prioridad por fecha o urgencia (RF-03)
+            if (solicitud.getFechaLimite() != null) {
+                long dias = ChronoUnit.DAYS.between(LocalDate.now(), solicitud.getFechaLimite());
+                if (dias <= 2)
+                    prioridadSugerida = Prioridad.CRITICA;
+                else if (dias <= 5 && prioridadSugerida != Prioridad.CRITICA)
+                    prioridadSugerida = Prioridad.ALTA;
+            }
         }
 
         String descripcionTipo = TipoSolicitud.valueOf(tipoSugerido).getDescripcion();
         return SugerenciaIAResponseDTO.builder()
                 .solicitudId(solicitud.getId())
-                .tipoSolicitudSugerido(tipoSugerido)
+                .tipoSolicitudSugerido(descripcionTipo)
                 .prioridadSugerida(prioridadSugerida)
                 .resumenHistorial("Solicitud en estado " + solicitud.getEstado() + " con "
                         + (solicitud.getHistorial() != null ? solicitud.getHistorial().size() : 0)
                         + " acciones previas.")
                 .sugerenciaClasificar("Se sugiere clasificar como " + descripcionTipo + " basado en reglas.")
-                .sugerenciaEnAtencion("Estimado estudiante, su solicitud ha sido asignada a un responsable y está en revisión.")
-                .sugerenciaAtendida("Estimado estudiante, hemos atendido su solicitud sobre " + descripcionTipo + ". Quedamos a la espera de sus comentarios.")
+                .sugerenciaEnAtencion(
+                        "Estimado estudiante, su solicitud ha sido asignada a un responsable y está en revisión.")
+                .sugerenciaAtendida("Estimado estudiante, hemos atendido su solicitud sobre " + descripcionTipo
+                        + ". Quedamos a la espera de sus comentarios.")
                 .sugerenciaCierre("La solicitud ha sido resuelta satisfactoriamente y se procede a su cierre.")
                 .justificacionIA("Sugerencia automática basada en análisis de palabras clave y fechas.")
                 .build();
@@ -282,7 +306,8 @@ public class AsistenciaIAService {
         return "Actúa como un asistente académico experto de la Universidad del Quindío. Analiza la siguiente solicitud de un estudiante y genera una respuesta estructurada estrictamente en formato JSON.\n\n"
                 +
                 "DETALLES DE LA SOLICITUD:\n" +
-                "- Descripción: " + (solicitud.getDescripcion() != null ? solicitud.getDescripcion() : "Sin descripción") + "\n" +
+                "- Descripción: "
+                + (solicitud.getDescripcion() != null ? solicitud.getDescripcion() : "Sin descripción") + "\n" +
                 "- Fecha de registro: " + solicitud.getFechaRegistro() + "\n" +
                 "- Fecha límite asociada: "
                 + (solicitud.getFechaLimite() != null ? solicitud.getFechaLimite() : "Ninguna") + "\n" +
@@ -297,7 +322,8 @@ public class AsistenciaIAService {
                 "- HOMOLOGACION: Para reconocer materias de otra institución\n" +
                 "- RECONOCIMIENTO_CREDITOS: Para reconocer créditos adicionales\n" +
                 "- EXAMEN_SUPLETORIO: Para presentar un examen no presentado por inasistencia\n" +
-                "- HABILITACION: Para presentar un examen de recuperación de una materia perdida (habilitar/recuperar)\n" +
+                "- HABILITACION: Para presentar un examen de recuperación de una materia perdida (habilitar/recuperar)\n"
+                +
                 "- MODIFICACION_MATRICULA: Para modificar la matrícula económica o académica\n" +
                 "- RESERVA_CUPO: Para reservar un cupo para el siguiente semestre\n" +
                 "- REINGRESO: Para volver después de haberse retirado\n" +
@@ -320,10 +346,13 @@ public class AsistenciaIAService {
                 +
                 "2. \"prioridadSugerida\": Nivel de urgencia. DEBE ser exactamente uno de: [CRITICA, ALTA, MEDIA, BAJA].\n"
                 +
-                "3. \"resumenHistorial\": Un resumen de TODO el proceso actual (desde la creacion hasta el estado actual), incluyendo las fechas importantes.\n" +
+                "3. \"resumenHistorial\": Un resumen de TODO el proceso actual (desde la creacion hasta el estado actual), incluyendo las fechas importantes.\n"
+                +
                 "4. \"sugerenciaClasificar\": Borrador corto para la observación al clasificar la solicitud.\n" +
-                "5. \"sugerenciaEnAtencion\": Borrador de respuesta cordial al estudiante indicando que la solicitud está en revisión por un responsable.\n" +
-                "6. \"sugerenciaAtendida\": Borrador de respuesta al estudiante indicando la solución o atención de su solicitud.\n" +
+                "5. \"sugerenciaEnAtencion\": Borrador de respuesta cordial al estudiante indicando que la solicitud está en revisión por un responsable.\n"
+                +
+                "6. \"sugerenciaAtendida\": Borrador de respuesta al estudiante indicando la solución o atención de su solicitud.\n"
+                +
                 "7. \"sugerenciaCierre\": Borrador de conclusión para cerrar formalmente la solicitud.\n" +
                 "8. \"justificacionIA\": Justificación técnica de la clasificación y prioridad.\n" +
                 "\nEJEMPLO:\n" +
@@ -332,8 +361,10 @@ public class AsistenciaIAService {
                 "  \"prioridadSugerida\": \"ALTA\",\n" +
                 "  \"resumenHistorial\": \"La solicitud fue registrada hoy y no tiene acciones previas.\",\n" +
                 "  \"sugerenciaClasificar\": \"Clasificada como cancelación de semestre.\",\n" +
-                "  \"sugerenciaEnAtencion\": \"Estimado estudiante, su solicitud de cancelación de semestre ha sido recibida y se encuentra en revisión.\",\n" +
-                "  \"sugerenciaAtendida\": \"Estimado estudiante, su cancelación ha sido tramitada correctamente.\",\n" +
+                "  \"sugerenciaEnAtencion\": \"Estimado estudiante, su solicitud de cancelación de semestre ha sido recibida y se encuentra en revisión.\",\n"
+                +
+                "  \"sugerenciaAtendida\": \"Estimado estudiante, su cancelación ha sido tramitada correctamente.\",\n"
+                +
                 "  \"sugerenciaCierre\": \"Trámite finalizado exitosamente. Se procede al cierre.\",\n" +
                 "  \"justificacionIA\": \"El estudiante solicita cancelar el semestre por motivos personales.\"\n" +
                 "}";

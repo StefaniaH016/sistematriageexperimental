@@ -292,13 +292,13 @@ public class SolicitudService {
         }
 
         if (request.getObservacionCierre() == null || request.getObservacionCierre().trim().isEmpty()) {
-            throw new co.edu.uniquindio.poo.exception.OperacionNoPermitidaException(
+            throw new IllegalArgumentException(
                     "La observación de cierre es obligatoria (RF-08).");
         }
 
         // RF-08: Verificar que la solicitud esté en estado ATENDIDA
         if (solicitud.getEstado() != EstadoSolicitud.ATENDIDA) {
-            throw new co.edu.uniquindio.poo.exception.OperacionNoPermitidaException(
+            throw new co.edu.uniquindio.poo.exception.TransicionInvalidaException(
                     "Solo se pueden cerrar solicitudes en estado ATENDIDA.");
         }
 

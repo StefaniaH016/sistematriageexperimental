@@ -38,7 +38,7 @@ public enum TipoSolicitud {
     PROCESO_DISCIPLINARIO("Proceso disciplinario o apelación"),
 
     // General
-    CONSULTA_ACADEMICA("Consulta académica general");
+    CONSULTA_ACADEMICA("Consulta académica");
 
     private final String descripcion;
 

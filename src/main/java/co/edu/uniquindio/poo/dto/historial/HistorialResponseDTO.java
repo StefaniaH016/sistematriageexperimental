@@ -20,4 +20,8 @@ public class HistorialResponseDTO {
     private String accion;
     private co.edu.uniquindio.poo.dto.usuario.UsuarioResponseDTO usuario;
     private String observaciones;
+
+    public String getNombreUsuario() {
+        return usuario != null ? usuario.getNombre() + " " + usuario.getApellido() : null;
+    }
 }
