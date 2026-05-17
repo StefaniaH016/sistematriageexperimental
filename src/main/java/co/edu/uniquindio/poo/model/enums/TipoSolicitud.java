@@ -12,6 +12,7 @@ public enum TipoSolicitud {
     SOLICITUD_CUPOS("Solicitud de cupos"),
     HOMOLOGACION("Homologación"),
     EXAMEN_SUPLETORIO("Examen supletorio"),
+    HABILITACION("Examen de habilitación"),
 
     // Trámites de matrícula y continuidad
     MODIFICACION_MATRICULA("Modificación de matrícula"),

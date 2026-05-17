@@ -5,6 +5,7 @@ import co.edu.uniquindio.poo.model.enums.Rol;
 import co.edu.uniquindio.poo.repository.UsuarioRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -22,8 +23,16 @@ public class DataInitConfig {
     private static final Logger LOG = Logger.getLogger(DataInitConfig.class.getName());
 
     @Bean
-    CommandLineRunner initData(UsuarioRepository usuarioRepository, PasswordEncoder passwordEncoder) {
+    CommandLineRunner initData(UsuarioRepository usuarioRepository, PasswordEncoder passwordEncoder, JdbcTemplate jdbcTemplate) {
         return args -> {
+            try {
+                // Limpieza de base de datos para roles obsoletos (migración)
+                jdbcTemplate.execute("UPDATE usuarios SET rol = 'RESPONSABLE' WHERE rol = 'DOCENTE'");
+                LOG.info("Migración: Usuarios con rol DOCENTE actualizados a RESPONSABLE.");
+            } catch (Exception e) {
+                LOG.warning("No se pudo ejecutar migración de DOCENTE: " + e.getMessage());
+            }
+
             if (usuarioRepository.count() == 0) {
                 LOG.info("Cargando datos iniciales de demostración...");
 
@@ -71,18 +80,7 @@ public class DataInitConfig {
                         .activo(true)
                         .build());
 
-                // Docente
-                usuarioRepository.save(Usuario.builder()
-                        .identificacion("7001234567")
-                        .nombre("Pedro")
-                        .apellido("Ramírez")
-                        .email("pedro.ramirez@uq.edu.co")
-                        .rol(Rol.DOCENTE)
-                        .password(passwordEncoder.encode("123456"))
-                        .activo(true)
-                        .build());
-
-                LOG.info("Datos iniciales cargados: 5 usuarios de prueba creados.");
+                LOG.info("Datos iniciales cargados: 4 usuarios de prueba creados.");
             }
         };
     }

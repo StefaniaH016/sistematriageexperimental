@@ -19,7 +19,10 @@ public class SugerenciaIAResponseDTO {
     private Long solicitudId;
     private String tipoSolicitudSugerido;
     private Prioridad prioridadSugerida;
-    private String sugerenciaRespuesta;
+    private String sugerenciaClasificar;
+    private String sugerenciaEnAtencion;
+    private String sugerenciaAtendida;
+    private String sugerenciaCierre;
     private String resumenHistorial;
     private String justificacionIA;
     private String modeloUtilizado;

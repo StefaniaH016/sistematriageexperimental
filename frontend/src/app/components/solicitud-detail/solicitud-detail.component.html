@@ -57,6 +57,19 @@
     }
 
     <div class="detail-grid">
+      <!-- RF-06: Resumen Historial / Trazabilidad (IA) - Movido arriba para mejor visibilidad -->
+      @if (sugerenciaIA?.resumenHistorial) {
+        <div class="card historial-card" style="margin-bottom: 0; border: 1px solid var(--primary-color); background-color: #f8fbff; grid-column: 1 / -1;">
+          <div class="card-header-title">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: var(--primary-color)">
+              <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+            </svg>
+            <h2 style="color: var(--primary-color)">Resumen de Historial (IA)</h2>
+          </div>
+          <p class="ia-resumen" style="padding: 0 0.5rem; margin: 0; font-size: 0.95rem;">{{ sugerenciaIA!.resumenHistorial }}</p>
+        </div>
+      }
+
       <!-- Info Card -->
       <div class="card info-card">
         <div class="card-header-title">
@@ -106,7 +119,7 @@
           </div>
           <div class="info-item">
             <span class="info-label">Fecha Creación</span>
-            <span class="info-value">{{ solicitud.fechaCreacion | date:'dd/MM/yyyy HH:mm' }}</span>
+            <span class="info-value">{{ solicitud.fechaRegistro | date:'dd/MM/yyyy HH:mm' }}</span>
           </div>
           <div class="info-item">
             <span class="info-label">Fecha Límite</span>
@@ -120,7 +133,7 @@
           </div>
           <div class="info-item">
             <span class="info-label">Última Actualización</span>
-            <span class="info-value">{{ solicitud.fechaUltimaActualizacion | date:'dd/MM/yyyy HH:mm' }}</span>
+            <span class="info-value">{{ ultimaActualizacion | date:'dd/MM/yyyy HH:mm' }}</span>
           </div>
           @if (solicitud.observaciones) {
             <div class="info-item full-width">
@@ -132,65 +145,53 @@
       </div>
 
       <!-- Actions Panel -->
-      @if (solicitud.estado !== 'CERRADA' && (authService.currentUserValue?.rol === 'RESPONSABLE' || authService.currentUserValue?.rol === 'ADMINISTRATIVO')) {
+      @if ((solicitud.estado !== 'CERRADA' || (solicitud.estado === 'CERRADA' && authService.currentUserValue?.rol === 'ADMINISTRATIVO')) && (authService.currentUserValue?.rol === 'RESPONSABLE' || authService.currentUserValue?.rol === 'ADMINISTRATIVO')) {
         <div class="card actions-card">
           <div class="card-header-title">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/>
             </svg>
             <h2>Acciones</h2>
+            <button class="btn-ia" style="margin-left: auto;" (click)="sugerirIA()" [disabled]="cargandoIA">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+              </svg>
+              {{ cargandoIA ? 'Analizando...' : 'Asistente IA' }}
+            </button>
           </div>
+
+          @if (sugerenciaIA) {
+            <div class="ia-suggestion" style="margin: 1rem 1.5rem;">
+              <div class="ia-badge" [class.rules-badge]="sugerenciaIA.modeloUtilizado === 'REGLAS_NEGOCIO'">
+                {{ sugerenciaIA.modeloUtilizado === 'REGLAS_NEGOCIO' ? 'SISTEMA' : 'IA' }}
+              </div>
+              <div class="ia-content">
+                <div class="ia-main-suggestion">
+                  <strong>Sugerencia Clasificación:</strong> {{ tipoLabel(sugerenciaIA.tipoSolicitudSugerido | anyToTipo) }}
+                  @if (sugerenciaIA.prioridadSugerida) {
+                    <span class="sep">|</span>
+                    <strong>Prioridad:</strong> {{ prioridadLabel(sugerenciaIA.prioridadSugerida | anyToPrioridad) }}
+                  }
+                </div>
+                @if (sugerenciaIA.justificacionIA) {
+                  <p class="ia-reason">{{ sugerenciaIA.justificacionIA }}</p>
+                }
+              </div>
+              <button class="btn-icon" (click)="aplicarSugerenciaIA()" title="Aplicar sugerencias a los formularios">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polyline points="20,6 9,17 4,12"/>
+                </svg>
+              </button>
+            </div>
+          }
 
           <!-- RF-02: Clasificar (Solo Administrativo) -->
           @if (authService.currentUserValue?.rol === 'ADMINISTRATIVO' && (solicitud.estado === 'REGISTRADA' || solicitud.estado === 'CLASIFICADA')) {
             <div class="action-section">
               <div class="action-header">
                 <h3>Clasificar Solicitud</h3>
-                <button class="btn-ia" (click)="sugerirIA()" [disabled]="cargandoIA">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
-                  </svg>
-                  {{ cargandoIA ? 'Analizando...' : 'IA Sugerencia' }}
-                </button>
               </div>
               
-              @if (sugerenciaIA) {
-                <div class="ia-suggestion">
-                  <div class="ia-badge" [class.rules-badge]="sugerenciaIA.modeloUtilizado === 'REGLAS_NEGOCIO'">
-                    {{ sugerenciaIA.modeloUtilizado === 'REGLAS_NEGOCIO' ? 'SISTEMA' : 'IA' }}
-                  </div>
-                  <div class="ia-content">
-                    <div class="ia-main-suggestion">
-                      <strong>Sugerencia:</strong> {{ tipoLabel(sugerenciaIA.tipoSolicitudSugerido | anyToTipo) }}
-                      @if (sugerenciaIA.prioridadSugerida) {
-                        <span class="sep">|</span>
-                        <strong>Prioridad:</strong> {{ prioridadLabel(sugerenciaIA.prioridadSugerida | anyToPrioridad) }}
-                      }
-                    </div>
-                    @if (sugerenciaIA.justificacionIA) {
-                      <p class="ia-reason">{{ sugerenciaIA.justificacionIA }}</p>
-                    }
-                    @if (sugerenciaIA.resumenHistorial) {
-                      <div class="ia-resumen-box">
-                        <strong>Resumen del Historial:</strong>
-                        <p class="ia-resumen">{{ sugerenciaIA.resumenHistorial }}</p>
-                      </div>
-                    }
-                    @if (sugerenciaIA.sugerenciaRespuesta) {
-                      <div class="ia-resumen-box">
-                        <strong>Borrador de respuesta:</strong>
-                        <p class="ia-resumen">{{ sugerenciaIA.sugerenciaRespuesta }}</p>
-                      </div>
-                    }
-                  </div>
-                  <button class="btn-icon" (click)="aplicarSugerenciaIA()" title="Aplicar sugerencia">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                      <polyline points="20,6 9,17 4,12"/>
-                    </svg>
-                  </button>
-                </div>
-              }
-
               <div class="action-form">
                 <div class="input-group">
                   <select [(ngModel)]="clasificarTipo" class="form-input">
@@ -201,7 +202,12 @@
                   </select>
                 </div>
                 <input type="text" [(ngModel)]="clasificarObs" placeholder="Observaciones..." class="form-input">
-                <button class="btn btn-action" [disabled]="!clasificarTipo" (click)="clasificar()">Clasificar</button>
+                @if (sugerenciaIA?.sugerenciaClasificar) {
+                  <div class="ia-inline-hint" (click)="clasificarObs = sugerenciaIA!.sugerenciaClasificar" style="cursor:pointer; color:var(--primary-color); font-size:0.8rem; margin-top:0.25rem;">
+                    ✨ Usar sugerencia IA: {{ sugerenciaIA!.sugerenciaClasificar }}
+                  </div>
+                }
+                <button class="btn btn-action" [disabled]="!clasificarTipo" style="margin-top:0.5rem;" (click)="clasificar()">Clasificar</button>
               </div>
             </div>
           }
@@ -240,8 +246,22 @@
             </div>
           }
 
+          <!-- RF-05: Tomar Solicitud (Solo Responsable) -->
+          @if (authService.currentUserValue?.rol === 'RESPONSABLE' && !solicitud.responsable && (solicitud.estado === 'CLASIFICADA' || solicitud.estado === 'REGISTRADA')) {
+            <div class="action-section">
+              <h3>Tomar Solicitud</h3>
+              <p style="margin-bottom: 0.5rem; color: var(--text-muted); font-size: 0.9rem;">
+                Asume esta solicitud para comenzar su atención.
+              </p>
+              <div class="action-form">
+                <input type="text" [(ngModel)]="asignarObs" placeholder="Observaciones (opcional)..." class="form-input">
+                <button class="btn btn-action" (click)="tomarSolicitud()">Tomar Solicitud</button>
+              </div>
+            </div>
+          }
+
           <!-- RF-04: Cambiar estado (Admin o Responsable Asignado) -->
-          @if (authService.currentUserValue?.rol === 'ADMINISTRATIVO' || (authService.currentUserValue?.rol === 'RESPONSABLE' && solicitud.responsable?.id === authService.currentUserValue?.id)) {
+          @if ((authService.currentUserValue?.rol === 'ADMINISTRATIVO' || (authService.currentUserValue?.rol === 'RESPONSABLE' && solicitud.responsable?.id === authService.currentUserValue?.id)) && !(authService.currentUserValue?.rol === 'ADMINISTRATIVO' && solicitud.estado === 'ATENDIDA')) {
             <div class="action-section">
               <h3>Cambiar Estado</h3>
               <div class="action-form">
@@ -251,7 +271,16 @@
                   }
                 </select>
                 <input type="text" [(ngModel)]="estadoObs" placeholder="Observaciones obligatorias *" class="form-input" required>
-                <button class="btn btn-action" [disabled]="!estadoObs || (nuevoEstado === 'EN_ATENCION' && (!solicitud.responsable || !solicitud.prioridad))" (click)="cambiarEstado()">Cambiar</button>
+                @if (sugerenciaIA) {
+                  <div class="ia-inline-hint" style="cursor:pointer; color:var(--primary-color); font-size:0.8rem; margin-top:0.25rem;">
+                    @if (nuevoEstado === 'EN_ATENCION' && sugerenciaIA.sugerenciaEnAtencion) {
+                      <span (click)="estadoObs = sugerenciaIA.sugerenciaEnAtencion">✨ Usar sugerencia IA: {{ sugerenciaIA.sugerenciaEnAtencion }}</span>
+                    } @else if (nuevoEstado === 'ATENDIDA' && sugerenciaIA.sugerenciaAtendida) {
+                      <span (click)="estadoObs = sugerenciaIA.sugerenciaAtendida">✨ Usar sugerencia IA: {{ sugerenciaIA.sugerenciaAtendida }}</span>
+                    }
+                  </div>
+                }
+                <button class="btn btn-action" style="margin-top:0.5rem;" [disabled]="!estadoObs || (nuevoEstado === 'EN_ATENCION' && (!solicitud.responsable || !solicitud.prioridad))" (click)="cambiarEstado()">Cambiar</button>
                 @if (nuevoEstado === 'EN_ATENCION' && (!solicitud.responsable || !solicitud.prioridad)) {
                   <p style="color: #b85450; font-size: 0.75rem; margin: 0.25rem 0 0 0;">
                     * Requiere responsable y prioridad para iniciar atención.
@@ -267,7 +296,12 @@
               <h3>Cerrar Solicitud</h3>
               <div class="action-form">
                 <input type="text" [(ngModel)]="cerrarObs" placeholder="Observaciones de cierre *" class="form-input" required>
-                <button class="btn btn-danger" [disabled]="!cerrarObs" (click)="cerrar()">
+                @if (sugerenciaIA?.sugerenciaCierre) {
+                  <div class="ia-inline-hint" (click)="cerrarObs = sugerenciaIA!.sugerenciaCierre" style="cursor:pointer; color:var(--primary-color); font-size:0.8rem; margin-top:0.25rem;">
+                    ✨ Usar sugerencia IA: {{ sugerenciaIA!.sugerenciaCierre }}
+                  </div>
+                }
+                <button class="btn btn-danger" style="margin-top:0.5rem;" [disabled]="!cerrarObs" (click)="cerrar()">
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
                     <path d="M7 11V7a5 5 0 0110 0v4"/>
@@ -277,10 +311,27 @@
               </div>
             </div>
           }
+
+          <!-- Eliminar -->
+          @if (solicitud.estado === 'CERRADA' && authService.currentUserValue?.rol === 'ADMINISTRATIVO') {
+            <div class="action-section action-cerrar" style="margin-top: 1rem; border-top: 1px dashed #e2e8f0; padding-top: 1rem;">
+              <h3 style="color: #b85450;">Eliminar Solicitud</h3>
+              <p style="color: #666; font-size: 0.9rem; margin-bottom: 0.5rem;">Esta acción eliminará permanentemente la solicitud y su historial.</p>
+              <div class="action-form">
+                <button class="btn btn-danger" (click)="eliminar()">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M3 6h18"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/>
+                  </svg>
+                  Eliminar Permanentemente
+                </button>
+              </div>
+            </div>
+          }
         </div>
       }
 
-      <!-- RF-06: Historial / Trazabilidad -->
+
+
       <div class="card historial-card">
         <div class="card-header-title">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">

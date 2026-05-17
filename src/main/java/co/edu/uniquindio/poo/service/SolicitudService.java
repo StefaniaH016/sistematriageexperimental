@@ -231,8 +231,7 @@ public class SolicitudService {
         }
 
         // Verificar que tenga rol apropiado para ser responsable
-        if (responsable.getRol() != Rol.RESPONSABLE && responsable.getRol() != Rol.ADMINISTRATIVO
-                && responsable.getRol() != Rol.DOCENTE) {
+        if (responsable.getRol() != Rol.RESPONSABLE && responsable.getRol() != Rol.ADMINISTRATIVO) {
             throw new OperacionNoPermitidaException(
                     "El usuario no tiene un rol válido para ser responsable de una solicitud");
         }
@@ -285,6 +284,29 @@ public class SolicitudService {
 
         solicitud = solicitudRepository.save(solicitud);
         return mapper.toSolicitudDTO(solicitud);
+    }
+
+    // ==================== ELIMINACIÓN ====================
+
+    /**
+     * Elimina físicamente una solicitud y su historial de la base de datos.
+     * Solo permitido si está en estado CERRADA.
+     */
+    public void eliminarSolicitud(Long solicitudId) {
+        Solicitud solicitud = buscarSolicitudPorId(solicitudId);
+        Usuario usuario = actorContextService.obtenerActorActual();
+
+        if (solicitud.getEstado() != EstadoSolicitud.CERRADA) {
+            throw new OperacionNoPermitidaException(
+                    "Solo se pueden eliminar solicitudes que se encuentren en estado CERRADA.");
+        }
+
+        if (usuario.getRol() != Rol.ADMINISTRATIVO) {
+            throw new OperacionNoPermitidaException(
+                    "Solo los usuarios administrativos pueden eliminar solicitudes.");
+        }
+
+        solicitudRepository.delete(solicitud);
     }
 
     // ==================== RF-07: CONSULTA DE SOLICITUDES ====================

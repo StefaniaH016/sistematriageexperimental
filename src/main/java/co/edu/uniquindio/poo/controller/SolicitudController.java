@@ -135,6 +135,18 @@ public class SolicitudController {
         return ResponseEntity.ok(ApiResponseDTO.exitoso("Solicitud cerrada exitosamente", response));
     }
 
+    // ==================== ELIMINACIÓN ====================
+
+    /**
+     * Elimina una solicitud. Solo permitida si está en estado CERRADA.
+     */
+    @Operation(summary = "Eliminar solicitud", description = "Elimina físicamente una solicitud cerrada")
+    @DeleteMapping("/{id}")
+    public ResponseEntity<ApiResponseDTO<Void>> eliminarSolicitud(@PathVariable Long id) {
+        solicitudService.eliminarSolicitud(id);
+        return ResponseEntity.ok(ApiResponseDTO.exitoso("Solicitud eliminada exitosamente", null));
+    }
+
     // ==================== RF-06 & RF-07: CONSULTAS ====================
 
     /**

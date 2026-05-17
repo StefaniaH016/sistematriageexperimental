@@ -5,6 +5,7 @@ export enum TipoSolicitud {
   SOLICITUD_CUPOS = 'SOLICITUD_CUPOS',
   HOMOLOGACION = 'HOMOLOGACION',
   EXAMEN_SUPLETORIO = 'EXAMEN_SUPLETORIO',
+  HABILITACION = 'HABILITACION',
   // Trámites de matrícula y continuidad
   MODIFICACION_MATRICULA = 'MODIFICACION_MATRICULA',
   CANCELACION_SEMESTRE = 'CANCELACION_SEMESTRE',
@@ -53,7 +54,6 @@ export enum CanalOrigen {
 
 export enum Rol {
   ESTUDIANTE = 'ESTUDIANTE',
-  DOCENTE = 'DOCENTE',
   ADMINISTRATIVO = 'ADMINISTRATIVO',
   RESPONSABLE = 'RESPONSABLE'
 }
@@ -64,6 +64,7 @@ export const TIPO_SOLICITUD_LABELS: Record<TipoSolicitud, string> = {
   [TipoSolicitud.SOLICITUD_CUPOS]: 'Solicitud de Cupos',
   [TipoSolicitud.HOMOLOGACION]: 'Homologación',
   [TipoSolicitud.EXAMEN_SUPLETORIO]: 'Examen Supletorio',
+  [TipoSolicitud.HABILITACION]: 'Examen de Habilitación',
   [TipoSolicitud.MODIFICACION_MATRICULA]: 'Modificación de Matrícula',
   [TipoSolicitud.CANCELACION_SEMESTRE]: 'Cancelación de Semestre',
   [TipoSolicitud.RESERVA_CUPO]: 'Reserva de Cupo',
@@ -107,7 +108,6 @@ export const CANAL_LABELS: Record<CanalOrigen, string> = {
 
 export const ROL_LABELS: Record<Rol, string> = {
   [Rol.ESTUDIANTE]: 'Estudiante',
-  [Rol.DOCENTE]: 'Docente',
   [Rol.ADMINISTRATIVO]: 'Administrativo',
   [Rol.RESPONSABLE]: 'Responsable'
 };

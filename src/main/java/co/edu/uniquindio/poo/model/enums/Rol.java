@@ -7,7 +7,6 @@ package co.edu.uniquindio.poo.model.enums;
 public enum Rol {
 
     ESTUDIANTE("Estudiante"),
-    DOCENTE("Docente"),
     ADMINISTRATIVO("Administrativo"),
     RESPONSABLE("Responsable de atención");
 

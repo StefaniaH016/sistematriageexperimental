@@ -81,8 +81,10 @@ public class AsistenciaIAService {
                     .tipoSolicitudSugerido(tipoSugeridoRaw)
                     .prioridadSugerida(parsePrioridad(prioridadRaw, sugerenciaBase.getPrioridadSugerida()))
                     .resumenHistorial(jsonRes.optString("resumenHistorial", sugerenciaBase.getResumenHistorial()))
-                    .sugerenciaRespuesta(
-                            jsonRes.optString("sugerenciaRespuesta", sugerenciaBase.getSugerenciaRespuesta()))
+                    .sugerenciaClasificar(jsonRes.optString("sugerenciaClasificar", sugerenciaBase.getSugerenciaClasificar()))
+                    .sugerenciaEnAtencion(jsonRes.optString("sugerenciaEnAtencion", sugerenciaBase.getSugerenciaEnAtencion()))
+                    .sugerenciaAtendida(jsonRes.optString("sugerenciaAtendida", sugerenciaBase.getSugerenciaAtendida()))
+                    .sugerenciaCierre(jsonRes.optString("sugerenciaCierre", sugerenciaBase.getSugerenciaCierre()))
                     .justificacionIA(jsonRes.optString("justificacionIA", sugerenciaBase.getJustificacionIA()))
                     .modeloUtilizado("Gemini-1.5-Flash")
                     .generadoEn(LocalDateTime.now())
@@ -92,8 +94,8 @@ public class AsistenciaIAService {
             // Fallback: Si falla la IA, devolvemos la sugerencia basada en reglas (RF-11)
             System.err.println("Error llamando a Gemini: " + e.getMessage());
             sugerenciaBase.setJustificacionIA(
-                    "Sugerencia basada en reglas de negocio (La conexión con la IA falló). Detalle: " + e.getMessage());
-            sugerenciaBase.setModeloUtilizado("REGLAS_NEGOCIO (FALLBACK)");
+                    "Sugerencia automática basada en reglas de negocio. (Nota: El servicio de IA se encuentra temporalmente saturado o no disponible).");
+            sugerenciaBase.setModeloUtilizado("REGLAS_NEGOCIO");
             sugerenciaBase.setGeneradoEn(LocalDateTime.now());
             return sugerenciaBase;
         }
@@ -133,8 +135,12 @@ public class AsistenciaIAService {
                 || content.contains("reconocimiento de credito")) {
             tipoSugerido = TipoSolicitud.HOMOLOGACION.name();
         }
-        // Examen supletorio
-        else if (content.contains("supletorio") || (content.contains("examen") && content.contains("perdi"))
+        // Examen supletorio o habilitación
+        else if (content.contains("habilitación") || content.contains("habilitacion")
+                || content.contains("habilitar") || content.contains("recuperar") || content.contains("recuperación")) {
+            tipoSugerido = TipoSolicitud.HABILITACION.name();
+            prioridadSugerida = Prioridad.ALTA;
+        } else if (content.contains("supletorio") || (content.contains("examen") && content.contains("perdi"))
                 || content.contains("examen supletorio")) {
             tipoSugerido = TipoSolicitud.EXAMEN_SUPLETORIO.name();
             prioridadSugerida = Prioridad.ALTA;
@@ -216,8 +222,10 @@ public class AsistenciaIAService {
                 .resumenHistorial("Solicitud en estado " + solicitud.getEstado() + " con "
                         + (solicitud.getHistorial() != null ? solicitud.getHistorial().size() : 0)
                         + " acciones previas.")
-                .sugerenciaRespuesta("Estimado estudiante, hemos recibido su solicitud sobre " + descripcionTipo
-                        + ". Estaremos procesándola pronto.")
+                .sugerenciaClasificar("Se sugiere clasificar como " + descripcionTipo + " basado en reglas.")
+                .sugerenciaEnAtencion("Estimado estudiante, su solicitud ha sido asignada a un responsable y está en revisión.")
+                .sugerenciaAtendida("Estimado estudiante, hemos atendido su solicitud sobre " + descripcionTipo + ". Quedamos a la espera de sus comentarios.")
+                .sugerenciaCierre("La solicitud ha sido resuelta satisfactoriamente y se procede a su cierre.")
                 .justificacionIA("Sugerencia automática basada en análisis de palabras clave y fechas.")
                 .build();
     }
@@ -274,7 +282,8 @@ public class AsistenciaIAService {
         return "Actúa como un asistente académico experto de la Universidad del Quindío. Analiza la siguiente solicitud de un estudiante y genera una respuesta estructurada estrictamente en formato JSON.\n\n"
                 +
                 "DETALLES DE LA SOLICITUD:\n" +
-                "- Descripción: " + solicitud.getDescripcion() + "\n" +
+                "- Descripción: " + (solicitud.getDescripcion() != null ? solicitud.getDescripcion() : "Sin descripción") + "\n" +
+                "- Fecha de registro: " + solicitud.getFechaRegistro() + "\n" +
                 "- Fecha límite asociada: "
                 + (solicitud.getFechaLimite() != null ? solicitud.getFechaLimite() : "Ninguna") + "\n" +
                 historialStr.toString() +
@@ -287,7 +296,8 @@ public class AsistenciaIAService {
                 "- SOLICITUD_CUPOS: Para pedir un cupo en una materia llena\n" +
                 "- HOMOLOGACION: Para reconocer materias de otra institución\n" +
                 "- RECONOCIMIENTO_CREDITOS: Para reconocer créditos adicionales\n" +
-                "- EXAMEN_SUPLETORIO: Para presentar un examen perdido\n" +
+                "- EXAMEN_SUPLETORIO: Para presentar un examen no presentado por inasistencia\n" +
+                "- HABILITACION: Para presentar un examen de recuperación de una materia perdida (habilitar/recuperar)\n" +
                 "- MODIFICACION_MATRICULA: Para modificar la matrícula económica o académica\n" +
                 "- RESERVA_CUPO: Para reservar un cupo para el siguiente semestre\n" +
                 "- REINGRESO: Para volver después de haberse retirado\n" +
@@ -310,15 +320,21 @@ public class AsistenciaIAService {
                 +
                 "2. \"prioridadSugerida\": Nivel de urgencia. DEBE ser exactamente uno de: [CRITICA, ALTA, MEDIA, BAJA].\n"
                 +
-                "3. \"resumenHistorial\": Un breve resumen (máx 3 frases) del estado actual.\n" +
-                "4. \"sugerenciaRespuesta\": Un borrador de respuesta cordial para el estudiante.\n" +
-                "5. \"justificacionIA\": Justificación técnica de la clasificación y prioridad.\n" +
+                "3. \"resumenHistorial\": Un resumen de TODO el proceso actual (desde la creacion hasta el estado actual), incluyendo las fechas importantes.\n" +
+                "4. \"sugerenciaClasificar\": Borrador corto para la observación al clasificar la solicitud.\n" +
+                "5. \"sugerenciaEnAtencion\": Borrador de respuesta cordial al estudiante indicando que la solicitud está en revisión por un responsable.\n" +
+                "6. \"sugerenciaAtendida\": Borrador de respuesta al estudiante indicando la solución o atención de su solicitud.\n" +
+                "7. \"sugerenciaCierre\": Borrador de conclusión para cerrar formalmente la solicitud.\n" +
+                "8. \"justificacionIA\": Justificación técnica de la clasificación y prioridad.\n" +
                 "\nEJEMPLO:\n" +
                 "{\n" +
                 "  \"tipoSolicitudSugerido\": \"CANCELACION_SEMESTRE\",\n" +
                 "  \"prioridadSugerida\": \"ALTA\",\n" +
                 "  \"resumenHistorial\": \"La solicitud fue registrada hoy y no tiene acciones previas.\",\n" +
-                "  \"sugerenciaRespuesta\": \"Cordial saludo...\",\n" +
+                "  \"sugerenciaClasificar\": \"Clasificada como cancelación de semestre.\",\n" +
+                "  \"sugerenciaEnAtencion\": \"Estimado estudiante, su solicitud de cancelación de semestre ha sido recibida y se encuentra en revisión.\",\n" +
+                "  \"sugerenciaAtendida\": \"Estimado estudiante, su cancelación ha sido tramitada correctamente.\",\n" +
+                "  \"sugerenciaCierre\": \"Trámite finalizado exitosamente. Se procede al cierre.\",\n" +
                 "  \"justificacionIA\": \"El estudiante solicita cancelar el semestre por motivos personales.\"\n" +
                 "}";
     }

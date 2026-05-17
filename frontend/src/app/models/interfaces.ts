@@ -34,9 +34,8 @@ export interface SolicitudResponse {
   estado: EstadoSolicitud;
   prioridad: Prioridad;
   canalOrigen: CanalOrigen;
-  fechaCreacion: string;
+  fechaRegistro: string;
   fechaLimite: string;
-  fechaUltimaActualizacion: string;
   solicitante: UsuarioResponse;
   responsable: UsuarioResponse | null;
   observaciones: string;

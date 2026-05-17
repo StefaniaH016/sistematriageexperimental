@@ -104,7 +104,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
 
   get ultimasSolicitudes(): SolicitudResponse[] {
     return [...this.solicitudes]
-      .sort((a, b) => new Date(b.fechaCreacion).getTime() - new Date(a.fechaCreacion).getTime())
+      .sort((a, b) => new Date(b.fechaRegistro).getTime() - new Date(a.fechaRegistro).getTime())
       .slice(0, 5);
   }
 

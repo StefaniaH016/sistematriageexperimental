@@ -52,6 +52,11 @@ export class SolicitudService {
     return this.http.put<ApiResponse<SolicitudResponse>>(`${this.url}/${id}/cerrar`, dto);
   }
 
+  /** Eliminar solicitud cerrada */
+  eliminar(id: number): Observable<ApiResponse<void>> {
+    return this.http.delete<ApiResponse<void>>(`${this.url}/${id}`);
+  }
+
   /** RF-06: Obtener historial */
   obtenerHistorial(id: number): Observable<ApiResponse<any[]>> {
     return this.http.get<ApiResponse<any[]>>(`${this.url}/${id}/historial`);

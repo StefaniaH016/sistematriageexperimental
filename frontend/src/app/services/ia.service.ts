@@ -7,7 +7,10 @@ import { ApiResponse } from '../models';
 export interface SugerenciaIAResponseDTO {
   tipoSolicitudSugerido: string;
   prioridadSugerida: string;
-  sugerenciaRespuesta: string;
+  sugerenciaClasificar: string;
+  sugerenciaEnAtencion: string;
+  sugerenciaAtendida: string;
+  sugerenciaCierre: string;
   resumenHistorial: string;
   justificacionIA: string;
   modeloUtilizado?: string;

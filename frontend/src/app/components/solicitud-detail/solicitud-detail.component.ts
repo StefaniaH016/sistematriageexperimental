@@ -67,6 +67,13 @@ export class SolicitudDetailComponent implements OnInit {
 
   private solicitudId!: number;
 
+  get ultimaActualizacion(): string {
+    if (this.historial.length > 0) {
+      return this.historial[this.historial.length - 1].fechaHora;
+    }
+    return this.solicitud?.fechaRegistro || '';
+  }
+
   constructor(
     private route: ActivatedRoute,
     private router: Router,
@@ -157,10 +164,18 @@ export class SolicitudDetailComponent implements OnInit {
 
   aplicarSugerenciaIA(): void {
     if (this.sugerenciaIA) {
-      this.clasificarTipo = this.sugerenciaIA.tipoSolicitudSugerido;
-      this.priorizarPrioridad = this.sugerenciaIA.prioridadSugerida;
-      this.clasificarObs = `Sugerencia IA Aplicada. Razón: ${this.sugerenciaIA.justificacionIA}`;
+      this.clasificarTipo = this.sugerenciaIA.tipoSolicitudSugerido || this.clasificarTipo;
+      this.priorizarPrioridad = this.sugerenciaIA.prioridadSugerida || this.priorizarPrioridad;
+      this.clasificarObs = this.sugerenciaIA.sugerenciaClasificar || `Sugerencia IA Aplicada. Razón: ${this.sugerenciaIA.justificacionIA}`;
       this.priorizarObs = 'Prioridad sugerida por IA basada en el análisis de la solicitud.';
+      if (this.nuevoEstado === 'EN_ATENCION') {
+        this.estadoObs = this.sugerenciaIA.sugerenciaEnAtencion || '';
+      } else if (this.nuevoEstado === 'ATENDIDA') {
+        this.estadoObs = this.sugerenciaIA.sugerenciaAtendida || '';
+      } else {
+        this.estadoObs = this.sugerenciaIA.sugerenciaClasificar || '';
+      }
+      this.cerrarObs = this.sugerenciaIA.sugerenciaCierre || '';
     }
   }
 
@@ -208,6 +223,20 @@ export class SolicitudDetailComponent implements OnInit {
     });
   }
 
+  tomarSolicitud(): void {
+    const obs = this.asignarObs || 'Solicitud tomada por el responsable directamente.';
+    this.solicitudService.asignar(this.solicitudId, {
+      responsableId: this.authService.currentUserValue?.id!,
+      observaciones: obs
+    }).subscribe({
+      next: () => {
+        this.asignarObs = '';
+        this.onSuccess('Has tomado la solicitud exitosamente');
+      },
+      error: err => this.onError(err)
+    });
+  }
+
   cambiarEstado(): void {
     if (!this.estadoObs) {
       this.onError({ error: { mensaje: 'La observación del cambio de estado es obligatoria' } });
@@ -241,10 +270,24 @@ export class SolicitudDetailComponent implements OnInit {
     });
   }
 
+  eliminar(): void {
+    if (confirm('¿Está seguro de que desea eliminar esta solicitud permanentemente? Esta acción no se puede deshacer.')) {
+      this.solicitudService.eliminar(this.solicitudId).subscribe({
+        next: () => {
+          this.router.navigate(['/solicitudes']);
+        },
+        error: err => this.onError(err)
+      });
+    }
+  }
+
   private onSuccess(msg: string): void {
     this.mensaje = msg;
     this.esError = false;
     this.cargar();
+    if (this.sugerenciaIA) {
+      this.sugerirIA();
+    }
     setTimeout(() => this.mensaje = '', 4000);
   }
 
