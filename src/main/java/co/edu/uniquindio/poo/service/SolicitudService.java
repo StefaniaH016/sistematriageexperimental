@@ -241,6 +241,11 @@ public class SolicitudService {
         if (asignador.getRol() == Rol.RESPONSABLE && !asignador.getId().equals(request.getResponsableId())) {
             throw new OperacionNoPermitidaException("Un responsable solo puede autoasignarse solicitudes.");
         }
+        
+        // Regla de Negocio: Un responsable no puede tomar solicitudes sin clasificar
+        if (asignador.getRol() == Rol.RESPONSABLE && solicitud.getEstado() == EstadoSolicitud.REGISTRADA) {
+            throw new OperacionNoPermitidaException("Un responsable no puede tomar una solicitud que aún no ha sido clasificada por un administrador.");
+        }
 
         validarNoEstaCerrada(solicitud);
 

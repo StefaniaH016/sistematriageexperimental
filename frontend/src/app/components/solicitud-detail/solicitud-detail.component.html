@@ -57,18 +57,6 @@
     }
 
     <div class="detail-grid">
-      <!-- RF-06: Resumen Historial / Trazabilidad (IA) - Movido arriba para mejor visibilidad -->
-      @if (sugerenciaIA?.resumenHistorial) {
-        <div class="card historial-card" style="margin-bottom: 0; border: 1px solid var(--primary-color); background-color: #f8fbff; grid-column: 1 / -1;">
-          <div class="card-header-title">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: var(--primary-color)">
-              <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
-            </svg>
-            <h2 style="color: var(--primary-color)">Resumen de Historial (IA)</h2>
-          </div>
-          <p class="ia-resumen" style="padding: 0 0.5rem; margin: 0; font-size: 0.95rem;">{{ sugerenciaIA!.resumenHistorial }}</p>
-        </div>
-      }
 
       <!-- Info Card -->
       <div class="card info-card">
@@ -247,7 +235,7 @@
           }
 
           <!-- RF-05: Tomar Solicitud (Solo Responsable) -->
-          @if (authService.currentUserValue?.rol === 'RESPONSABLE' && !solicitud.responsable && (solicitud.estado === 'CLASIFICADA' || solicitud.estado === 'REGISTRADA')) {
+          @if (authService.currentUserValue?.rol === 'RESPONSABLE' && !solicitud.responsable && solicitud.estado === 'CLASIFICADA') {
             <div class="action-section">
               <h3>Tomar Solicitud</h3>
               <p style="margin-bottom: 0.5rem; color: var(--text-muted); font-size: 0.9rem;">
@@ -332,40 +320,67 @@
 
 
 
-      <div class="card historial-card">
-        <div class="card-header-title">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <circle cx="12" cy="12" r="10"/><polyline points="12,6 12,12 16,14"/>
-          </svg>
-          <h2>Historial de Trazabilidad</h2>
-        </div>
-        @if (historial.length === 0) {
-          <p class="text-muted">No hay registros de historial.</p>
-        } @else {
-          <div class="timeline">
-            @for (h of historial; track h.id) {
-              <div class="timeline-item">
-                <div class="timeline-dot"></div>
-                <div class="timeline-content">
-                  <div class="timeline-header">
-                    <strong>{{ h.accion }}</strong>
-                    <span class="timeline-date">{{ h.fechaHora | date:'dd/MM/yyyy HH:mm' }}</span>
-                  </div>
-                  @if (h.usuario) {
-                    <div class="timeline-user">
-                      <span class="avatar-xs">{{ h.usuario.nombre.charAt(0) }}</span>
-                      {{ h.usuario.nombre }} {{ h.usuario.apellido }}
-                      <span class="timeline-role" style="font-size: 0.75rem; color: #666; margin-left: 0.5rem; background: #eee; padding: 2px 6px; border-radius: 12px;">{{ rolLabel(h.usuario.rol) }}</span>
-                    </div>
-                  }
-                  @if (h.observaciones) {
-                    <div class="timeline-obs">{{ h.observaciones }}</div>
-                  }
-                </div>
+      <!-- Sección de Historial y Resumen IA (Ambos fijos y ocupando el ancho completo) -->
+      <div class="historial-section" style="grid-column: 1 / -1; display: flex; flex-direction: column; gap: 1.5rem;">
+        
+        <!-- Tarjeta del Resumen de IA (Fija, siempre visible) -->
+        <div class="card" style="border: 1px solid var(--color-primary, #8b7355); background-color: #f8fbff; margin-bottom: 0;">
+          <div class="card-header-title">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: var(--color-primary, #8b7355)">
+              <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+            </svg>
+            <h2 style="color: var(--color-primary, #8b7355)">Resumen de Historial (IA)</h2>
+          </div>
+          <div style="padding: 0 0.5rem;">
+            @if (cargandoIA) {
+              <div style="display: flex; align-items: center; gap: 0.5rem; color: #666; font-size: 0.9rem;">
+                <div class="spinner" style="width: 16px; height: 16px; border-width: 2px;"></div>
+                Generando resumen inteligente...
               </div>
+            } @else if (sugerenciaIA?.resumenHistorial) {
+              <p class="ia-resumen" style="margin: 0; font-size: 0.9rem;">{{ sugerenciaIA!.resumenHistorial }}</p>
+            } @else {
+              <p style="margin: 0; font-size: 0.9rem; color: #888; font-style: italic;">No se ha generado el resumen del historial.</p>
             }
           </div>
-        }
+        </div>
+
+        <!-- Historial de Trazabilidad Card -->
+        <div class="card">
+          <div class="card-header-title">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"/><polyline points="12,6 12,12 16,14"/>
+            </svg>
+            <h2>Historial de Trazabilidad</h2>
+          </div>
+          @if (historial.length === 0) {
+            <p class="text-muted">No hay registros de historial.</p>
+          } @else {
+            <div class="timeline">
+              @for (h of historial; track h.id) {
+                <div class="timeline-item">
+                  <div class="timeline-dot"></div>
+                  <div class="timeline-content">
+                    <div class="timeline-header">
+                      <strong>{{ h.accion }}</strong>
+                      <span class="timeline-date">{{ h.fechaHora | date:'dd/MM/yyyy HH:mm' }}</span>
+                    </div>
+                    @if (h.usuario) {
+                      <div class="timeline-user">
+                        <span class="avatar-xs">{{ h.usuario.nombre.charAt(0) }}</span>
+                        {{ h.usuario.nombre }} {{ h.usuario.apellido }}
+                        <span class="timeline-role" style="font-size: 0.75rem; color: #666; margin-left: 0.5rem; background: #eee; padding: 2px 6px; border-radius: 12px;">{{ rolLabel(h.usuario.rol) }}</span>
+                      </div>
+                    }
+                    @if (h.observaciones) {
+                      <div class="timeline-obs">{{ h.observaciones }}</div>
+                    }
+                  </div>
+                </div>
+              }
+            </div>
+          }
+        </div>
       </div>
     </div>
   }

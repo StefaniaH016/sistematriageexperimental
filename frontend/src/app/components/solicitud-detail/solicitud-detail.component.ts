@@ -112,6 +112,11 @@ export class SolicitudDetailComponent implements OnInit {
           this.solicitud = res.datos;
           this.historial = res.datos.historial || [];
           this.actualizarEstadosDisponibles();
+          
+          // Auto-cargar resumen IA para todas las solicitudes
+          if (!this.sugerenciaIA && !this.cargandoIA) {
+            this.sugerirIA();
+          }
         }
         this.cdr.markForCheck();
       },
