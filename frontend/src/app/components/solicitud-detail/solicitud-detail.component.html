@@ -355,6 +355,7 @@
                     <div class="timeline-user">
                       <span class="avatar-xs">{{ h.usuario.nombre.charAt(0) }}</span>
                       {{ h.usuario.nombre }} {{ h.usuario.apellido }}
+                      <span class="timeline-role" style="font-size: 0.75rem; color: #666; margin-left: 0.5rem; background: #eee; padding: 2px 6px; border-radius: 12px;">{{ rolLabel(h.usuario.rol) }}</span>
                     </div>
                   }
                   @if (h.observaciones) {

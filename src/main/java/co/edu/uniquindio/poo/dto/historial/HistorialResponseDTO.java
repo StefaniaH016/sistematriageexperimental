@@ -18,6 +18,6 @@ public class HistorialResponseDTO {
     private Long id;
     private LocalDateTime fechaHora;
     private String accion;
-    private String nombreUsuario;
+    private co.edu.uniquindio.poo.dto.usuario.UsuarioResponseDTO usuario;
     private String observaciones;
 }

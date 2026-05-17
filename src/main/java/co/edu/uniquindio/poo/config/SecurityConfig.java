@@ -54,8 +54,14 @@ public class SecurityConfig {
                         // Solicitudes - acceso más flexible para desarrollo
                         .requestMatchers(HttpMethod.POST, "/api/solicitudes").authenticated()
                         .requestMatchers(HttpMethod.GET, "/api/solicitudes/**").authenticated()
-                        .requestMatchers(HttpMethod.PUT, "/api/solicitudes/**")
-                        .hasAnyRole("ADMINISTRATIVO", "RESPONSABLE")
+                        
+                        // RF-13: Autorización por roles estricta
+                        .requestMatchers(HttpMethod.PUT, "/api/solicitudes/*/estado").hasAnyRole("ADMINISTRATIVO", "RESPONSABLE")
+                        .requestMatchers(HttpMethod.PUT, "/api/solicitudes/*/clasificar").hasRole("ADMINISTRATIVO")
+                        .requestMatchers(HttpMethod.PUT, "/api/solicitudes/*/priorizar").hasRole("ADMINISTRATIVO")
+                        .requestMatchers(HttpMethod.PUT, "/api/solicitudes/*/asignar").hasAnyRole("ADMINISTRATIVO", "RESPONSABLE")
+                        .requestMatchers(HttpMethod.PUT, "/api/solicitudes/*/cerrar").hasRole("ADMINISTRATIVO")
+                        .requestMatchers(HttpMethod.DELETE, "/api/solicitudes/**").hasRole("ADMINISTRATIVO")
 
                         // Usuarios - acceso más flexible para desarrollo
                         .requestMatchers(HttpMethod.POST, "/api/usuarios").hasRole("ADMINISTRATIVO")

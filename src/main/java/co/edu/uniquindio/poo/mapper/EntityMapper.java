@@ -45,9 +45,7 @@ public class EntityMapper {
                 .id(historial.getId())
                 .fechaHora(historial.getFechaHora())
                 .accion(historial.getAccion())
-                .nombreUsuario(historial.getUsuario() != null
-                        ? historial.getUsuario().getNombreCompleto()
-                        : "Sistema")
+                .usuario(toUsuarioDTO(historial.getUsuario()))
                 .observaciones(historial.getObservaciones())
                 .build();
     }

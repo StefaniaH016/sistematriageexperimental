@@ -19,7 +19,8 @@ import {
   PRIORIDAD_LABELS,
   TIPO_SOLICITUD_LABELS,
   CANAL_LABELS,
-  CanalOrigen
+  CanalOrigen,
+  ROL_LABELS
 } from '../../models';
 
 @Pipe({ name: 'anyToTipo', standalone: true })
@@ -301,4 +302,5 @@ export class SolicitudDetailComponent implements OnInit {
   prioridadLabel(p: Prioridad): string { return PRIORIDAD_LABELS[p] || p; }
   tipoLabel(t: any): string { return TIPO_SOLICITUD_LABELS[t as TipoSolicitud] || t; }
   canalLabel(c: CanalOrigen): string { return CANAL_LABELS[c] || c; }
+  rolLabel(r: Rol): string { return ROL_LABELS[r] || r; }
 }

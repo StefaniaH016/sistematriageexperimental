@@ -110,6 +110,11 @@ public class SolicitudService {
         Solicitud solicitud = buscarSolicitudPorId(solicitudId);
         Usuario usuario = actorContextService.obtenerActorActual();
 
+        // RF-13: Autorización
+        if (usuario.getRol() != Rol.ADMINISTRATIVO) {
+            throw new OperacionNoPermitidaException("Solo los usuarios administrativos pueden clasificar solicitudes.");
+        }
+
         // RF-02: Validar que el tipo de solicitud no sea nulo ni vacío
         if (request.getTipoSolicitud() == null || request.getTipoSolicitud().trim().isEmpty()) {
             throw new co.edu.uniquindio.poo.exception.OperacionNoPermitidaException(
@@ -154,6 +159,11 @@ public class SolicitudService {
     public SolicitudResponseDTO priorizarSolicitud(Long solicitudId, PriorizacionRequestDTO request) {
         Solicitud solicitud = buscarSolicitudPorId(solicitudId);
         Usuario usuario = actorContextService.obtenerActorActual();
+
+        // RF-13: Autorización
+        if (usuario.getRol() != Rol.ADMINISTRATIVO) {
+            throw new OperacionNoPermitidaException("Solo los usuarios administrativos pueden priorizar solicitudes manualmente.");
+        }
 
         validarNoEstaCerrada(solicitud);
 
@@ -222,6 +232,16 @@ public class SolicitudService {
         Usuario responsable = usuarioService.buscarUsuarioPorId(request.getResponsableId());
         Usuario asignador = actorContextService.obtenerActorActual();
 
+        // RF-13: Autorización
+        if (asignador.getRol() != Rol.ADMINISTRATIVO && asignador.getRol() != Rol.RESPONSABLE) {
+            throw new OperacionNoPermitidaException("Rol no autorizado para asignar responsables.");
+        }
+        
+        // Un responsable solo puede asignarse la solicitud a sí mismo
+        if (asignador.getRol() == Rol.RESPONSABLE && !asignador.getId().equals(request.getResponsableId())) {
+            throw new OperacionNoPermitidaException("Un responsable solo puede autoasignarse solicitudes.");
+        }
+
         validarNoEstaCerrada(solicitud);
 
         // RF-05: Verificar que el responsable esté activo
@@ -260,6 +280,11 @@ public class SolicitudService {
     public SolicitudResponseDTO cerrarSolicitud(Long solicitudId, CierreRequestDTO request) {
         Solicitud solicitud = buscarSolicitudPorId(solicitudId);
         Usuario administrativo = actorContextService.obtenerActorActual();
+
+        // RF-13: Autorización
+        if (administrativo.getRol() != Rol.ADMINISTRATIVO) {
+            throw new OperacionNoPermitidaException("Solo los usuarios administrativos pueden cerrar solicitudes.");
+        }
 
         if (request.getObservacionCierre() == null || request.getObservacionCierre().trim().isEmpty()) {
             throw new co.edu.uniquindio.poo.exception.OperacionNoPermitidaException(
