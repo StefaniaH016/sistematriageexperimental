@@ -92,6 +92,18 @@
             <span class="info-value">{{ canalLabel(solicitud.canalOrigen) }}</span>
           </div>
           <div class="info-item">
+            <span class="info-label">Prioridad</span>
+            <span class="info-value">
+              @if (solicitud.prioridad) {
+                <span class="badge" [class]="'badge-prioridad-' + solicitud.prioridad.toLowerCase()">
+                  {{ prioridadLabel(solicitud.prioridad) }}
+                </span>
+              } @else {
+                <em class="text-muted">Sin priorizar</em>
+              }
+            </span>
+          </div>
+          <div class="info-item">
             <span class="info-label">Solicitante</span>
             <span class="info-value user-value">
               <span class="avatar-sm">{{ solicitud.solicitante.nombre.charAt(0) }}</span>
@@ -127,6 +139,7 @@
             <span class="info-label">Última Actualización</span>
             <span class="info-value">{{ ultimaActualizacion | date:'dd/MM/yyyy HH:mm' }}</span>
           </div>
+
           @if (solicitud.observaciones) {
             <div class="info-item full-width">
               <span class="info-label">Observaciones</span>
@@ -233,6 +246,11 @@
                   }
                 </select>
                 <input type="text" [(ngModel)]="asignarObs" placeholder="Observaciones obligatorias *" class="form-input" required>
+                @if (sugerenciaIA?.sugerenciaAsignar) {
+                  <div class="ia-inline-hint" (click)="asignarObs = sugerenciaIA!.sugerenciaAsignar" style="cursor:pointer; color:var(--primary-color); font-size:0.8rem; margin-top:0.25rem;">
+                    ✨ Usar sugerencia IA: {{ sugerenciaIA!.sugerenciaAsignar }}
+                  </div>
+                }
                 <button class="btn btn-action" [disabled]="asignarResponsableId === 0 || !asignarObs" (click)="asignar()">Asignar</button>
               </div>
             </div>

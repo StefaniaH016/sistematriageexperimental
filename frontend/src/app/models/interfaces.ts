@@ -33,6 +33,7 @@ export interface SolicitudResponse {
   tipoSolicitud: string;
   estado: EstadoSolicitud;
   prioridad: Prioridad;
+  justificacionPrioridad?: string;
   canalOrigen: CanalOrigen;
   fechaRegistro: string;
   fechaLimite: string;

@@ -36,12 +36,12 @@
       </div>
       <div class="filter-group">
         <label>Tipo</label>
-        <input type="text" [(ngModel)]="filtroTipo" (change)="aplicarFiltros()" placeholder="Filtrar por tipo..." class="filter-input" list="tipos-comunes-filtro">
-        <datalist id="tipos-comunes-filtro">
+        <select [(ngModel)]="filtroTipo" (change)="aplicarFiltros()">
+          <option value="">Todos los tipos</option>
           @for (t of tipos; track t) {
-            <option [value]="tipoLabel(t)">
+            <option [value]="t">{{ tipoLabel(t) }}</option>
           }
-        </datalist>
+        </select>
       </div>
       <div class="filter-group">
         <label>Prioridad</label>
@@ -108,7 +108,7 @@
                     <path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z"/>
                     <line x1="7" y1="7" x2="7.01" y2="7"/>
                   </svg>
-                  {{ s.tipoSolicitud }}
+                  {{ tipoLabel(s.tipoSolicitud) }}
                 </span>
               }
               <span class="meta-item">

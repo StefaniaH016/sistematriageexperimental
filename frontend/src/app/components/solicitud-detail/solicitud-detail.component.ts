@@ -173,7 +173,10 @@ export class SolicitudDetailComponent implements OnInit {
       this.clasificarTipo = this.sugerenciaIA.tipoSolicitudSugerido || this.clasificarTipo;
       this.priorizarPrioridad = this.sugerenciaIA.prioridadSugerida || this.priorizarPrioridad;
       this.clasificarObs = this.sugerenciaIA.sugerenciaClasificar || `Sugerencia IA Aplicada. Razón: ${this.sugerenciaIA.justificacionIA}`;
-      this.priorizarObs = 'Prioridad sugerida por IA basada en el análisis de la solicitud.';
+      // Usar la justificación real de la IA como observación de priorización
+      this.priorizarObs = this.sugerenciaIA.justificacionIA || 'Prioridad asignada por sugerencia del sistema de IA.';
+      // Usar sugerencia de asignación de responsable
+      this.asignarObs = this.sugerenciaIA.sugerenciaAsignar || this.asignarObs;
       if (this.nuevoEstado === 'EN_ATENCION') {
         this.estadoObs = this.sugerenciaIA.sugerenciaEnAtencion || '';
       } else if (this.nuevoEstado === 'ATENDIDA') {

@@ -8,6 +8,7 @@ export interface SugerenciaIAResponseDTO {
   tipoSolicitudSugerido: string;
   prioridadSugerida: string;
   sugerenciaClasificar: string;
+  sugerenciaAsignar: string;
   sugerenciaEnAtencion: string;
   sugerenciaAtendida: string;
   sugerenciaCierre: string;

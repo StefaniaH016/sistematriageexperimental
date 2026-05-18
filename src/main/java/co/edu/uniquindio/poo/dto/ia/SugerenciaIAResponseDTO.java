@@ -20,6 +20,7 @@ public class SugerenciaIAResponseDTO {
     private String tipoSolicitudSugerido;
     private Prioridad prioridadSugerida;
     private String sugerenciaClasificar;
+    private String sugerenciaAsignar;
     private String sugerenciaEnAtencion;
     private String sugerenciaAtendida;
     private String sugerenciaCierre;

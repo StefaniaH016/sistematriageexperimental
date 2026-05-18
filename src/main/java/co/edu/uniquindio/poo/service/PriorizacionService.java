@@ -28,143 +28,140 @@ public class PriorizacionService {
      */
     public Object[] calcularPrioridad(Solicitud solicitud) {
         int puntaje = 0;
-        StringBuilder justificacion = new StringBuilder();
+        String razonTipo = "";
+        String razonFecha = "";
+        String razonDescripcion = "";
 
         // Regla 1: Prioridad por tipo de solicitud
-        puntaje += calcularPuntajePorTipo(solicitud.getTipoSolicitud(), justificacion);
+        String[] resultadoTipo = calcularPuntajePorTipo(solicitud.getTipoSolicitud());
+        puntaje += Integer.parseInt(resultadoTipo[0]);
+        razonTipo = resultadoTipo[1];
 
         // Regla 2: Prioridad por fecha límite
-        puntaje += calcularPuntajePorFechaLimite(solicitud.getFechaLimite(), justificacion);
+        String[] resultadoFecha = calcularPuntajePorFechaLimite(solicitud.getFechaLimite());
+        puntaje += Integer.parseInt(resultadoFecha[0]);
+        razonFecha = resultadoFecha[1];
 
         // Regla 3: Señales semánticas de urgencia en la descripción
-        puntaje += calcularPuntajePorDescripcion(solicitud.getDescripcion(), justificacion);
+        String[] resultadoDesc = calcularPuntajePorDescripcion(solicitud.getDescripcion());
+        puntaje += Integer.parseInt(resultadoDesc[0]);
+        razonDescripcion = resultadoDesc[1];
 
         // Determinar prioridad según puntaje total
         Prioridad prioridad = determinarPrioridad(puntaje);
-        justificacion.insert(0, String.format("Puntaje total: %d. ", puntaje));
 
-        return new Object[] { prioridad, justificacion.toString() };
+        // Construir justificación narrativa clara para el usuario
+        String justificacion = construirJustificacionNarrativa(prioridad, razonTipo, razonFecha, razonDescripcion);
+
+        return new Object[] { prioridad, justificacion };
+    }
+
+    /**
+     * Construye una justificación narrativa y legible para el usuario final,
+     * explicando el razonamiento detrás de la prioridad asignada.
+     */
+    private String construirJustificacionNarrativa(Prioridad prioridad, String razonTipo,
+            String razonFecha, String razonDescripcion) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("Se asignó prioridad ").append(prioridad.getDescripcion()).append(" porque: ");
+        sb.append(razonTipo);
+        if (!razonFecha.isEmpty()) {
+            sb.append(" Adicionalmente, ").append(razonFecha.toLowerCase());
+        }
+        if (!razonDescripcion.isEmpty()) {
+            sb.append(" ").append(razonDescripcion);
+        }
+        return sb.toString().trim();
     }
 
     /**
      * Calcula el puntaje basado en el tipo de solicitud.
+     * Retorna [puntaje, razón narrativa].
      */
-    private int calcularPuntajePorTipo(String tipo, StringBuilder justificacion) {
+    private String[] calcularPuntajePorTipo(String tipo) {
         if (tipo == null || tipo.isBlank()) {
-            justificacion.append("Sin tipo de solicitud asignado. ");
-            return 0;
+            return new String[]{"0", ""};
         }
 
         String t = tipo.toLowerCase();
 
-        // Cancelación de semestre: impacto crítico en trayectoria académica
         if (t.contains("cancelacion_semestre") || t.contains("cancelacion de semestre")
                 || t.contains("cancelar semestre")) {
-            justificacion.append("Cancelación de semestre: impacto crítico en trayectoria académica (+5). ");
-            return 5;
+            return new String[]{"5", "La cancelación de semestre tiene un impacto crítico en la trayectoria académica del estudiante y requiere atención inmediata."};
         }
-        // Trámites de asignaturas
         if (t.contains("registro") || t.contains("cancelacion_asignaturas") || t.contains("cancelación de asignaturas")
                 || t.contains("materia") || t.contains("asignatura")) {
-            justificacion.append("Trámite de asignaturas: impacto alto en matrícula (+4). ");
-            return 4;
+            return new String[]{"4", "Los trámites relacionados con asignaturas afectan directamente la matrícula activa del estudiante."};
         }
-        // Examen supletorio
         if (t.contains("supletorio") || t.contains("examen")) {
-            justificacion.append("Examen supletorio: impacto alto por fechas (+4). ");
-            return 4;
+            return new String[]{"4", "Los exámenes supletorios o de habilitación tienen fechas estrictas que no pueden postergarse sin consecuencias académicas."};
         }
-        // Modificación de matrícula
         if (t.contains("modificacion_matricula") || t.contains("modificación de matrícula")
                 || t.contains("modificación") && t.contains("matrícula")) {
-            justificacion.append("Modificación de matrícula: impacto alto en plan académico (+4). ");
-            return 4;
+            return new String[]{"4", "La modificación de matrícula impacta el plan académico del estudiante y debe atenderse durante el período habilitado."};
         }
-        // Proceso disciplinario
         if (t.contains("disciplinario") || t.contains("apelacion") || t.contains("apelación")) {
-            justificacion.append("Proceso disciplinario: requiere atención urgente (+4). ");
-            return 4;
+            return new String[]{"4", "Los procesos disciplinarios o de apelación tienen implicaciones legales y académicas que demandan atención urgente."};
         }
-        // Trabajo de grado y práctica empresarial
         if (t.contains("trabajo_grado") || t.contains("trabajo de grado") || t.contains("practica_empresarial")
                 || t.contains("práctica")) {
-            justificacion.append("Trámite de egreso: impacto alto en finalización de carrera (+3). ");
-            return 3;
+            return new String[]{"3", "Los trámites de trabajo de grado o práctica están vinculados a la etapa final de la carrera, lo que les otorga un impacto significativo."};
         }
-        // Homologación y reconocimiento de créditos
         if (t.contains("homologa") || t.contains("reconocimiento") || t.contains("reconocimiento_creditos")) {
-            justificacion.append("Homologación/Reconocimiento: impacto medio en plan de estudios (+3). ");
-            return 3;
+            return new String[]{"3", "La homologación y reconocimiento de créditos influye en el plan de estudios y el avance académico del estudiante."};
         }
-        // Cupos, reserva y reingreso
         if (t.contains("cupo") || t.contains("sobrecupo") || t.contains("reserva") || t.contains("reingreso")) {
-            justificacion.append("Trámite de permanencia o cupos: impacto medio (+3). ");
-            return 3;
+            return new String[]{"3", "La solicitud de cupos o reingreso puede afectar la continuidad académica del estudiante si no se atiende oportunamente."};
         }
-        // Apoyo económico y becas
         if (t.contains("apoyo_economico") || t.contains("apoyo económico") || t.contains("beca")
                 || t.contains("descuento")) {
-            justificacion.append("Apoyo económico: impacto medio en continuidad del estudiante (+3). ");
-            return 3;
+            return new String[]{"3", "El apoyo económico incide directamente en la capacidad del estudiante para continuar sus estudios."};
         }
-        // Transferencia interna
         if (t.contains("transferencia")) {
-            justificacion.append("Transferencia interna: impacto medio en plan académico (+2). ");
-            return 2;
+            return new String[]{"2", "La transferencia interna implica un cambio de programa académico que puede tener consecuencias en el historial y créditos del estudiante."};
         }
-        // Apoyo psicosocial
         if (t.contains("psicosocial") || t.contains("psicológico")) {
-            justificacion.append("Apoyo psicosocial: atención personalizada requerida (+2). ");
-            return 2;
+            return new String[]{"2", "El acompañamiento psicosocial requiere atención personalizada, aunque no suele tener plazos académicos críticos inmediatos."};
         }
-        // Trámites documentales
         if (t.contains("certificado") || t.contains("paz_y_salvo") || t.contains("paz y salvo")
                 || t.contains("acta_grado") || t.contains("acta de grado")) {
-            justificacion.append("Trámite documental: impacto bajo (+1). ");
-            return 1;
+            return new String[]{"1", "Los trámites documentales como certificados o constancias tienen bajo impacto en el proceso académico activo del estudiante."};
         }
 
-        justificacion.append("Consulta o trámite general: impacto bajo (+1). ");
-        return 1;
+        return new String[]{"1", "La consulta o trámite general no presenta indicadores de urgencia académica inmediata."};
     }
 
     /**
      * Calcula el puntaje basado en la cercanía de la fecha límite.
+     * Retorna [puntaje, razón narrativa].
      */
-    private int calcularPuntajePorFechaLimite(LocalDate fechaLimite, StringBuilder justificacion) {
+    private String[] calcularPuntajePorFechaLimite(LocalDate fechaLimite) {
         if (fechaLimite == null) {
-            justificacion.append("Sin fecha límite definida (+0). ");
-            return 0;
+            return new String[]{"0", ""};
         }
 
         long diasRestantes = ChronoUnit.DAYS.between(LocalDate.now(), fechaLimite);
 
         if (diasRestantes < 0) {
-            justificacion.append("Fecha límite vencida (+5). ");
-            return 5;
+            return new String[]{"5", "La fecha límite ya venció, lo que hace urgente una resolución inmediata."};
         } else if (diasRestantes <= 2) {
-            justificacion.append("Fecha límite en menos de 2 días (+4). ");
-            return 4;
+            return new String[]{"4", "La fecha límite vence en menos de 2 días, lo que impone máxima urgencia en la atención."};
         } else if (diasRestantes <= 5) {
-            justificacion.append("Fecha límite en menos de 5 días (+3). ");
-            return 3;
+            return new String[]{"3", "La fecha límite es en menos de 5 días, requiriendo atención preferente en el corto plazo."};
         } else if (diasRestantes <= 10) {
-            justificacion.append("Fecha límite en menos de 10 días (+2). ");
-            return 2;
+            return new String[]{"2", "La fecha límite está próxima (menos de 10 días), lo cual incrementa la urgencia de atención."};
         } else {
-            justificacion.append("Fecha límite lejana (+1). ");
-            return 1;
+            return new String[]{"1", "La fecha límite es lejana, lo que permite un margen razonable de atención."};
         }
     }
 
     /**
-     * Calcula puntaje adicional por señales de urgencia presentes en la
-     * descripción.
+     * Calcula puntaje adicional por señales de urgencia presentes en la descripción.
+     * Retorna [puntaje, razón narrativa].
      */
-    private int calcularPuntajePorDescripcion(String descripcion, StringBuilder justificacion) {
+    private String[] calcularPuntajePorDescripcion(String descripcion) {
         if (descripcion == null || descripcion.isBlank()) {
-            justificacion.append("Descripción sin señales de urgencia (+0). ");
-            return 0;
+            return new String[]{"0", ""};
         }
 
         String texto = descripcion.toLowerCase();
@@ -173,18 +170,14 @@ public class PriorizacionService {
         if (texto.contains("urgente") || texto.contains("inminente")) {
             puntaje += 2;
         }
-
         if (texto.contains("matricula") || texto.contains("cierre")) {
             puntaje += 1;
         }
 
         if (puntaje > 0) {
-            justificacion.append("Descripción con señales de urgencia (+").append(puntaje).append("). ");
-        } else {
-            justificacion.append("Descripción sin señales de urgencia (+0). ");
+            return new String[]{String.valueOf(puntaje), "La descripción de la solicitud contiene términos de urgencia que elevan la prioridad de atención."};
         }
-
-        return puntaje;
+        return new String[]{"0", ""};
     }
 
     /**

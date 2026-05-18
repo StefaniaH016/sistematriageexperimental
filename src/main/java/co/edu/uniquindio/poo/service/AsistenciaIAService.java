@@ -83,6 +83,8 @@ public class AsistenciaIAService {
                     .resumenHistorial(jsonRes.optString("resumenHistorial", sugerenciaBase.getResumenHistorial()))
                     .sugerenciaClasificar(
                             jsonRes.optString("sugerenciaClasificar", sugerenciaBase.getSugerenciaClasificar()))
+                    .sugerenciaAsignar(
+                            jsonRes.optString("sugerenciaAsignar", sugerenciaBase.getSugerenciaAsignar()))
                     .sugerenciaEnAtencion(
                             jsonRes.optString("sugerenciaEnAtencion", sugerenciaBase.getSugerenciaEnAtencion()))
                     .sugerenciaAtendida(jsonRes.optString("sugerenciaAtendida", sugerenciaBase.getSugerenciaAtendida()))
@@ -231,6 +233,10 @@ public class AsistenciaIAService {
         }
 
         String descripcionTipo = TipoSolicitud.valueOf(tipoSugerido).getDescripcion();
+
+        // Construir justificación narrativa de la prioridad basada en reglas
+        String justificacionPrioridad = construirJustificacionReglas(solicitud, prioridadSugerida, descripcionTipo);
+
         return SugerenciaIAResponseDTO.builder()
                 .solicitudId(solicitud.getId())
                 .tipoSolicitudSugerido(descripcionTipo)
@@ -238,18 +244,69 @@ public class AsistenciaIAService {
                 .resumenHistorial("Solicitud en estado " + solicitud.getEstado() + " con "
                         + (solicitud.getHistorial() != null ? solicitud.getHistorial().size() : 0)
                         + " acciones previas.")
-                .sugerenciaClasificar("Se sugiere clasificar como " + descripcionTipo + " basado en reglas.")
+                .sugerenciaClasificar("Se sugiere clasificar como " + descripcionTipo + " basado en análisis del contenido.")
+                .sugerenciaAsignar("Se asigna responsable para atender la solicitud de tipo '" + descripcionTipo
+                        + "'. La prioridad " + prioridadSugerida.name() + " requiere atención oportuna.")
                 .sugerenciaEnAtencion(
                         "Estimado estudiante, su solicitud ha sido asignada a un responsable y está en revisión.")
                 .sugerenciaAtendida("Estimado estudiante, hemos atendido su solicitud sobre " + descripcionTipo
                         + ". Quedamos a la espera de sus comentarios.")
                 .sugerenciaCierre("La solicitud ha sido resuelta satisfactoriamente y se procede a su cierre.")
-                .justificacionIA("Sugerencia automática basada en análisis de palabras clave y fechas.")
+                .justificacionIA(justificacionPrioridad)
                 .build();
     }
 
     public SugerenciaIAResponseDTO obtenerClasificacionSugerida(Long solicitudId) {
         return obtenerSugerencia(solicitudId, null);
+    }
+
+    /**
+     * Construye una justificación narrativa de la prioridad basada en las reglas de negocio.
+     * Esta justificación es la que se guarda en el campo justificacionPrioridad de la solicitud.
+     */
+    private String construirJustificacionReglas(SolicitudResponseDTO solicitud, Prioridad prioridad, String tipo) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("Prioridad ").append(prioridad.name()).append(" asignada por el sistema: ");
+
+        // Razón por tipo
+        switch (prioridad) {
+            case CRITICA:
+                sb.append("El tipo de solicitud '").append(tipo).append("' presenta un nivel crítico de impacto académico");
+                break;
+            case ALTA:
+                sb.append("El tipo de solicitud '").append(tipo).append("' tiene alto impacto en el proceso académico del estudiante");
+                break;
+            case MEDIA:
+                sb.append("El tipo de solicitud '").append(tipo).append("' tiene un impacto moderado en el proceso académico");
+                break;
+            default:
+                sb.append("El tipo de solicitud '").append(tipo).append("' no presenta urgencia académica inmediata");
+        }
+
+        // Razón por fecha
+        if (solicitud.getFechaLimite() != null) {
+            long dias = java.time.temporal.ChronoUnit.DAYS.between(LocalDate.now(), solicitud.getFechaLimite());
+            if (dias < 0) {
+                sb.append(". La fecha límite ya venció, lo que hace urgente una resolución inmediata");
+            } else if (dias <= 2) {
+                sb.append(". La fecha límite vence en menos de 2 días, aumentando la urgencia");
+            } else if (dias <= 5) {
+                sb.append(". La fecha límite es en menos de 5 días, requiriendo atención preferente");
+            } else if (dias <= 10) {
+                sb.append(". La fecha límite está próxima (menos de 10 días)");
+            }
+        }
+
+        // Razón por descripción
+        if (solicitud.getDescripcion() != null) {
+            String desc = solicitud.getDescripcion().toLowerCase();
+            if (desc.contains("urgente") || desc.contains("inminente")) {
+                sb.append(". La solicitud contiene indicadores de urgencia explícitos en su descripción");
+            }
+        }
+
+        sb.append(".");
+        return sb.toString();
     }
 
     private String llamarGeminiAPI(String prompt) {
@@ -338,12 +395,13 @@ public class AsistenciaIAService {
                 "3. \"resumenHistorial\": Un resumen de TODO el proceso actual (desde la creacion hasta el estado actual), incluyendo las fechas importantes.\n"
                 +
                 "4. \"sugerenciaClasificar\": Borrador corto para la observación al clasificar la solicitud.\n" +
-                "5. \"sugerenciaEnAtencion\": Borrador de respuesta cordial al estudiante indicando que la solicitud está en revisión por un responsable.\n"
+                "5. \"sugerenciaAsignar\": Observación breve que el administrativo puede registrar al momento de asignar un responsable, indicando la razón de la asignación y los próximos pasos esperados.\n" +
+                "6. \"sugerenciaEnAtencion\": Borrador de respuesta cordial al estudiante indicando que la solicitud está en revisión por un responsable.\n"
                 +
                 "6. \"sugerenciaAtendida\": Borrador de respuesta al estudiante indicando la solución o atención de su solicitud.\n"
                 +
                 "7. \"sugerenciaCierre\": Borrador de conclusión para cerrar formalmente la solicitud.\n" +
-                "8. \"justificacionIA\": Justificación técnica de la clasificación y prioridad.\n" +
+                "8. \"justificacionIA\": Explicación detallada y en español del MOTIVO CONCRETO por el que se asigna esa prioridad a esta solicitud específica. Debe mencionar: el tipo de trámite, el impacto académico real para el estudiante, y si hay fecha límite, cuánto tiempo queda. Escribe como si le explicaras al administrativo por qué debe atender esto con esa urgencia. Mínimo 2 oraciones claras y concretas.\n" +
                 "\nEJEMPLO:\n" +
                 "{\n" +
                 "  \"tipoSolicitudSugerido\": \"CANCELACION_SEMESTRE\",\n" +
