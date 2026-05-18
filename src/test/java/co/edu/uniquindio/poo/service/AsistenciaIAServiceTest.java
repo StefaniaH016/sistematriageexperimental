@@ -54,7 +54,7 @@ class AsistenciaIAServiceTest {
 
         SugerenciaIAResponseDTO resultado = asistenciaIAService.obtenerClasificacionSugerida(1L);
 
-        assertEquals("Homologación", resultado.getTipoSolicitudSugerido());
+        assertEquals("Homologación y reconocimiento de créditos", resultado.getTipoSolicitudSugerido());
     }
 
     @Test
@@ -181,7 +181,7 @@ class AsistenciaIAServiceTest {
         SugerenciaIAResponseDTO resultado = asistenciaIAService.obtenerClasificacionSugerida(10L);
 
         // Debe respetar el tipo y prioridad ya asignados
-        assertEquals("Homologación", resultado.getTipoSolicitudSugerido());
+        assertEquals("Homologación y reconocimiento de créditos", resultado.getTipoSolicitudSugerido());
         assertEquals(Prioridad.ALTA, resultado.getPrioridadSugerida());
     }
 

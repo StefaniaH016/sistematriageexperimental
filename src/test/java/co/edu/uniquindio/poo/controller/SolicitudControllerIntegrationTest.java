@@ -28,10 +28,23 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 @AutoConfigureMockMvc
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
+@org.junit.jupiter.api.TestInstance(org.junit.jupiter.api.TestInstance.Lifecycle.PER_CLASS)
 class SolicitudControllerIntegrationTest {
 
         @Autowired
         private MockMvc mockMvc;
+
+        @Autowired
+        private co.edu.uniquindio.poo.repository.SolicitudRepository solicitudRepository;
+
+        @Autowired
+        private co.edu.uniquindio.poo.repository.HistorialSolicitudRepository historialRepository;
+
+        @org.junit.jupiter.api.BeforeAll
+        void setupAll() {
+                historialRepository.deleteAll();
+                solicitudRepository.deleteAll();
+        }
 
         private static final ObjectMapper objectMapper = new ObjectMapper()
                         .registerModule(new JavaTimeModule());
@@ -335,5 +348,57 @@ class SolicitudControllerIntegrationTest {
                                 .content(objectMapper.writeValueAsString(cierreRequest)))
                                 .andExpect(status().isBadRequest())
                                 .andExpect(jsonPath("$.exitoso").value(false));
+        }
+
+        @Test
+        @Order(14)
+        @DisplayName("RF-05: Exceder límite de asignaciones activas por responsable debe fallar")
+        void limiteAsignacionesExcedido_DebeRetornarForbidden() throws Exception {
+                // Limpiar base de datos para empezar de cero
+                historialRepository.deleteAll();
+                solicitudRepository.deleteAll();
+
+                // Asignar responsable (ID 3 = Carlos López, RESPONSABLE)
+                // Hacemos 6 registros e intentamos asignarlos
+                for (int i = 0; i < 6; i++) {
+                        SolicitudRequestDTO createRequest = SolicitudRequestDTO.builder()
+                                        .descripcion("Solicitud de prueba de carga " + i)
+                                        .canalOrigen(CanalOrigen.CSU)
+                                        .solicitanteId(1L)
+                                        .build();
+
+                        MvcResult createResult = mockMvc.perform(post("/api/solicitudes")
+                                        .with(httpBasic(ESTUDIANTE_EMAIL, ESTUDIANTE_PASS))
+                                        .contentType(MediaType.APPLICATION_JSON)
+                                        .content(objectMapper.writeValueAsString(createRequest)))
+                                        .andExpect(status().isCreated())
+                                        .andReturn();
+
+                        Long solicitudId = objectMapper.readTree(createResult.getResponse().getContentAsString())
+                                        .get("datos").get("id").asLong();
+
+                        AsignacionRequestDTO asignacionRequest = AsignacionRequestDTO.builder()
+                                        .responsableId(3L)
+                                        .observaciones("Asignación de carga " + i)
+                                        .build();
+
+                        if (i < 5) {
+                                // Las primeras 5 asignaciones deben tener éxito (límite = 5)
+                                mockMvc.perform(put("/api/solicitudes/" + solicitudId + "/asignar")
+                                                .with(httpBasic(ADMIN_EMAIL, ADMIN_PASS))
+                                                .contentType(MediaType.APPLICATION_JSON)
+                                                .content(objectMapper.writeValueAsString(asignacionRequest)))
+                                                .andExpect(status().isOk());
+                        } else {
+                                // La sexta asignación debe ser rechazada con 400 Bad Request
+                                mockMvc.perform(put("/api/solicitudes/" + solicitudId + "/asignar")
+                                                .with(httpBasic(ADMIN_EMAIL, ADMIN_PASS))
+                                                .contentType(MediaType.APPLICATION_JSON)
+                                                .content(objectMapper.writeValueAsString(asignacionRequest)))
+                                                .andExpect(status().isBadRequest())
+                                                .andExpect(jsonPath("$.exitoso").value(false))
+                                                .andExpect(jsonPath("$.mensaje").value(org.hamcrest.Matchers.containsString("ya cuenta con el límite máximo de solicitudes activas asignadas")));
+                        }
+                }
         }
 }

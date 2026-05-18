@@ -64,6 +64,7 @@ public class EntityMapper {
 
         return SolicitudResponseDTO.builder()
                 .id(solicitud.getId())
+                .titulo(solicitud.getTitulo())
                 .tipoSolicitud(solicitud.getTipoSolicitud())
                 .descripcion(solicitud.getDescripcion())
                 .canalOrigen(solicitud.getCanalOrigen())

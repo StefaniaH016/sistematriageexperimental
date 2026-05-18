@@ -19,6 +19,9 @@ import java.time.LocalDate;
 @Builder
 public class SolicitudRequestDTO {
 
+    @Size(max = 200, message = "El título no puede exceder los 200 caracteres")
+    private String titulo;
+
     @NotBlank(message = "La descripción de la solicitud es obligatoria")
     @Size(max = 2000, message = "La descripción no puede exceder los 2000 caracteres")
     private String descripcion;

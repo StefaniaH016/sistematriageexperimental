@@ -104,7 +104,8 @@ public class AsistenciaIAService {
     }
 
     private SugerenciaIAResponseDTO aplicarReglasNegocio(SolicitudResponseDTO solicitud) {
-        String content = (solicitud.getDescripcion() != null ? solicitud.getDescripcion() : "").toLowerCase();
+        String content = ((solicitud.getTitulo() != null ? solicitud.getTitulo() + " " : "")
+                + (solicitud.getDescripcion() != null ? solicitud.getDescripcion() : "")).toLowerCase();
 
         String tipoSugerido = TipoSolicitud.CONSULTA_ACADEMICA.name();
         Prioridad prioridadSugerida = Prioridad.MEDIA;
@@ -112,7 +113,12 @@ public class AsistenciaIAService {
         boolean yaClasificada = false;
         if (solicitud.getTipoSolicitud() != null && !solicitud.getTipoSolicitud().isEmpty()) {
             for (TipoSolicitud t : TipoSolicitud.values()) {
-                if (t.getDescripcion().equalsIgnoreCase(solicitud.getTipoSolicitud()) || t.name().equalsIgnoreCase(solicitud.getTipoSolicitud())) {
+                String descNorm = t.getDescripcion().toLowerCase();
+                String reqNorm = solicitud.getTipoSolicitud().toLowerCase();
+                if (t.getDescripcion().equalsIgnoreCase(solicitud.getTipoSolicitud())
+                        || t.name().equalsIgnoreCase(solicitud.getTipoSolicitud())
+                        || descNorm.contains(reqNorm)
+                        || reqNorm.contains(descNorm)) {
                     tipoSugerido = t.name();
                     yaClasificada = true;
                     break;
@@ -149,18 +155,17 @@ public class AsistenciaIAService {
                     && (content.contains("asignatura") || content.contains("materia"))) {
                 tipoSugerido = TipoSolicitud.CANCELACION_ASIGNATURAS.name();
             }
-            // Homologación
-            else if (content.contains("homologa") || content.contains("reconocimiento de crédito")
-                    || content.contains("reconocimiento de credito")) {
+            // Homologación y reconocimiento de créditos
+            else if (content.contains("homologa") || content.contains("reconocimiento")
+                    || content.contains("reconocimiento de crédito") || content.contains("reconocimiento de credito")
+                    || content.contains("créditos adicionales")) {
                 tipoSugerido = TipoSolicitud.HOMOLOGACION.name();
             }
             // Examen supletorio o habilitación
-            else if (content.contains("habilitación") || content.contains("habilitacion")
-                    || content.contains("habilitar") || content.contains("recuperar") || content.contains("recuperación")) {
-                tipoSugerido = TipoSolicitud.HABILITACION.name();
-                prioridadSugerida = Prioridad.ALTA;
-            } else if (content.contains("supletorio") || (content.contains("examen") && content.contains("perdi"))
-                    || content.contains("examen supletorio")) {
+            else if (content.contains("supletorio") || content.contains("examen") || content.contains("perdi")
+                    || content.contains("examen supletorio") || content.contains("habilitación")
+                    || content.contains("habilitacion") || content.contains("habilitar")
+                    || content.contains("recuperar") || content.contains("recuperación")) {
                 tipoSugerido = TipoSolicitud.EXAMEN_SUPLETORIO.name();
                 prioridadSugerida = Prioridad.ALTA;
             }
@@ -169,34 +174,27 @@ public class AsistenciaIAService {
                 tipoSugerido = TipoSolicitud.SOLICITUD_CUPOS.name();
             }
             // Apoyo económico / becas
-            else if (content.contains("apoyo económico") || content.contains("apoyo economico")
-                    || content.contains("subsidio") || content.contains("dificultad econ")) {
+            else if (content.contains("apoyo") || content.contains("económico") || content.contains("economico")
+                    || content.contains("subsidio") || content.contains("beca") || content.contains("descuento")
+                    || content.contains("media beca")) {
                 tipoSugerido = TipoSolicitud.APOYO_ECONOMICO.name();
-            } else if (content.contains("beca") || content.contains("descuento") || content.contains("media beca")) {
-                tipoSugerido = TipoSolicitud.BECA_DESCUENTO.name();
             }
             // Apoyo psicosocial
             else if (content.contains("psicolog") || content.contains("bienestar") || content.contains("ansiedad")
                     || content.contains("estrés") || content.contains("salud mental")) {
                 tipoSugerido = TipoSolicitud.APOYO_PSICOSOCIAL.name();
             }
-            // Trabajo de grado
-            else if (content.contains("trabajo de grado") || content.contains("tesis")
-                    || content.contains("proyecto de grado")) {
+            // Trabajo de grado o práctica empresarial
+            else if (content.contains("trabajo de grado") || content.contains("tesis") || content.contains("proyecto de grado")
+                    || content.contains("práctica") || content.contains("practica") || content.contains("pasantía")
+                    || content.contains("pasantia")) {
                 tipoSugerido = TipoSolicitud.TRABAJO_GRADO.name();
             }
-            // Práctica empresarial
-            else if (content.contains("práctica") || content.contains("practica") || content.contains("pasantía")
-                    || content.contains("pasantia")) {
-                tipoSugerido = TipoSolicitud.PRACTICA_EMPRESARIAL.name();
-            }
-            // Certificados y documentos
-            else if (content.contains("certificado") || content.contains("constancia")) {
+            // Certificados y documentos académicos
+            else if (content.contains("certificado") || content.contains("constancia") || content.contains("paz y salvo")
+                    || content.contains("paz&salvo") || content.contains("acta") || content.contains("grado")
+                    || content.contains("graduac")) {
                 tipoSugerido = TipoSolicitud.CERTIFICADO_ESTUDIOS.name();
-            } else if (content.contains("paz y salvo") || content.contains("paz&salvo")) {
-                tipoSugerido = TipoSolicitud.PAZ_Y_SALVO.name();
-            } else if (content.contains("acta de grado") || content.contains("grado") || content.contains("graduac")) {
-                tipoSugerido = TipoSolicitud.ACTA_GRADO.name();
             }
             // Reingreso y reserva de cupo
             else if (content.contains("reserva") && content.contains("cupo")) {
@@ -214,10 +212,6 @@ public class AsistenciaIAService {
                     || content.contains("sanc")) {
                 tipoSugerido = TipoSolicitud.PROCESO_DISCIPLINARIO.name();
                 prioridadSugerida = Prioridad.ALTA;
-            }
-            // Reconocimiento de créditos
-            else if (content.contains("reconocimiento") || content.contains("créditos adicionales")) {
-                tipoSugerido = TipoSolicitud.RECONOCIMIENTO_CREDITOS.name();
             }
         }
 
@@ -306,6 +300,8 @@ public class AsistenciaIAService {
         return "Actúa como un asistente académico experto de la Universidad del Quindío. Analiza la siguiente solicitud de un estudiante y genera una respuesta estructurada estrictamente en formato JSON.\n\n"
                 +
                 "DETALLES DE LA SOLICITUD:\n" +
+                "- Título: "
+                + (solicitud.getTitulo() != null ? solicitud.getTitulo() : "Sin título") + "\n" +
                 "- Descripción: "
                 + (solicitud.getDescripcion() != null ? solicitud.getDescripcion() : "Sin descripción") + "\n" +
                 "- Fecha de registro: " + solicitud.getFechaRegistro() + "\n" +
@@ -319,29 +315,22 @@ public class AsistenciaIAService {
                 "- CANCELACION_ASIGNATURAS: Para cancelar materias individuales\n" +
                 "- CANCELACION_SEMESTRE: Para cancelar el semestre completo o retirarse temporalmente\n" +
                 "- SOLICITUD_CUPOS: Para pedir un cupo en una materia llena\n" +
-                "- HOMOLOGACION: Para reconocer materias de otra institución\n" +
-                "- RECONOCIMIENTO_CREDITOS: Para reconocer créditos adicionales\n" +
-                "- EXAMEN_SUPLETORIO: Para presentar un examen no presentado por inasistencia\n" +
-                "- HABILITACION: Para presentar un examen de recuperación de una materia perdida (habilitar/recuperar)\n"
-                +
+                "- HOMOLOGACION: Para reconocer materias de otra institución y reconocimiento de créditos adicionales\n" +
+                "- EXAMEN_SUPLETORIO: Para presentar un examen no presentado por inasistencia o habilitación de materia perdida\n" +
                 "- MODIFICACION_MATRICULA: Para modificar la matrícula económica o académica\n" +
                 "- RESERVA_CUPO: Para reservar un cupo para el siguiente semestre\n" +
                 "- REINGRESO: Para volver después de haberse retirado\n" +
                 "- TRANSFERENCIA_INTERNA: Para cambiar de programa o facultad\n" +
-                "- CERTIFICADO_ESTUDIOS: Para solicitar constancias o certificados\n" +
-                "- PAZ_Y_SALVO: Para tramitar paz y salvo académico\n" +
-                "- ACTA_GRADO: Para trámites de grado\n" +
-                "- APOYO_ECONOMICO: Para solicitar subsidios o apoyo económico\n" +
-                "- BECA_DESCUENTO: Para solicitar becas o descuentos en matrícula\n" +
-                "- APOYO_PSICOSOCIAL: Para solicitar acompañamiento psicológico\n" +
-                "- TRABAJO_GRADO: Para trámites relacionados con trabajo o proyecto de grado\n" +
-                "- PRACTICA_EMPRESARIAL: Para trámites de práctica o pasantía\n" +
+                "- CERTIFICADO_ESTUDIOS: Para solicitar constancias, certificados, paz y salvo, o actas de grado\n" +
+                "- APOYO_ECONOMICO: Para solicitar subsidios, apoyo económico, becas o descuentos en matrícula\n" +
+                "- APOYO_PSICOSOCIAL: Para solicitar acompañamiento psicológico y bienestar\n" +
+                "- TRABAJO_GRADO: Para trámites relacionados con trabajo de grado, tesis o prácticas/pasantías empresariales\n" +
                 "- PROCESO_DISCIPLINARIO: Para apelaciones o procesos disciplinarios\n" +
                 "- CONSULTA_ACADEMICA: Para consultas generales que no encajan en otras categorías\n" +
                 "\nIMPORTANTE: Si la solicitud menciona algo que no existe textualmente (como 'cancelar semestre'),\n" +
                 "debes razonar y elegir la categoría más apropiada (en este caso: CANCELACION_SEMESTRE).\n" +
                 "\nREQUISITOS DE SALIDA (JSON):\n" +
-                "Debes responder Únicament con un objeto JSON con los siguientes campos:\n" +
+                "Debes responder Únicamente con un objeto JSON con los siguientes campos:\n" +
                 "1. \"tipoSolicitudSugerido\": El nombre exacto del tipo (ej: CANCELACION_SEMESTRE). DEBE ser uno de la lista anterior.\n"
                 +
                 "2. \"prioridadSugerida\": Nivel de urgencia. DEBE ser exactamente uno de: [CRITICA, ALTA, MEDIA, BAJA].\n"

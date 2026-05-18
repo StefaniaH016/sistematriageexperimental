@@ -10,9 +10,8 @@ public enum TipoSolicitud {
     REGISTRO_ASIGNATURAS("Registro de asignaturas"),
     CANCELACION_ASIGNATURAS("Cancelación de asignaturas"),
     SOLICITUD_CUPOS("Solicitud de cupos"),
-    HOMOLOGACION("Homologación"),
-    EXAMEN_SUPLETORIO("Examen supletorio"),
-    HABILITACION("Examen de habilitación"),
+    HOMOLOGACION("Homologación y reconocimiento de créditos"),
+    EXAMEN_SUPLETORIO("Examen supletorio o habilitación"),
 
     // Trámites de matrícula y continuidad
     MODIFICACION_MATRICULA("Modificación de matrícula"),
@@ -22,19 +21,14 @@ public enum TipoSolicitud {
     TRANSFERENCIA_INTERNA("Transferencia interna de programa"),
 
     // Trámites documentales y certificaciones
-    CERTIFICADO_ESTUDIOS("Certificado de estudios"),
-    PAZ_Y_SALVO("Paz y salvo académico"),
-    ACTA_GRADO("Trámite de acta de grado"),
+    CERTIFICADO_ESTUDIOS("Certificados y documentos académicos"),
 
     // Apoyos y bienestar
-    APOYO_ECONOMICO("Solicitud de apoyo económico"),
-    BECA_DESCUENTO("Solicitud de beca o descuento"),
+    APOYO_ECONOMICO("Solicitud de apoyo económico y becas"),
     APOYO_PSICOSOCIAL("Solicitud de apoyo psicosocial"),
 
     // Procesos académicos especiales
-    RECONOCIMIENTO_CREDITOS("Reconocimiento de créditos"),
-    TRABAJO_GRADO("Trámite de trabajo de grado"),
-    PRACTICA_EMPRESARIAL("Trámite de práctica empresarial"),
+    TRABAJO_GRADO("Trámite de trabajo de grado o práctica empresarial"),
     PROCESO_DISCIPLINARIO("Proceso disciplinario o apelación"),
 
     // General

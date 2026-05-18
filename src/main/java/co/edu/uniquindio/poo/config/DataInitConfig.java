@@ -33,6 +33,27 @@ public class DataInitConfig {
                 LOG.warning("No se pudo ejecutar migración de DOCENTE: " + e.getMessage());
             }
 
+            try {
+                // Si hay una sola solicitud y su ID es mayor a 1, la movemos al ID 1 para reiniciar la numeración
+                Integer count = jdbcTemplate.queryForObject("SELECT COUNT(*) FROM solicitudes", Integer.class);
+                if (count != null && count == 1) {
+                    Long oldId = jdbcTemplate.queryForObject("SELECT id FROM solicitudes LIMIT 1", Long.class);
+                    if (oldId != null && oldId > 1) {
+                        jdbcTemplate.execute("SET FOREIGN_KEY_CHECKS = 0");
+                        jdbcTemplate.execute("UPDATE solicitudes SET id = 1 WHERE id = " + oldId);
+                        jdbcTemplate.execute("UPDATE historial_solicitudes SET solicitud_id = 1 WHERE solicitud_id = " + oldId);
+                        jdbcTemplate.execute("SET FOREIGN_KEY_CHECKS = 1");
+                        LOG.info("Base de datos: La única solicitud existente ha sido reasignada al ID 1.");
+                    }
+                }
+
+                // Reiniciar auto-incremento de la tabla de solicitudes para mantener la enumeración limpia
+                jdbcTemplate.execute("ALTER TABLE solicitudes AUTO_INCREMENT = 1");
+                LOG.info("Base de datos: Auto-incremento de solicitudes restablecido.");
+            } catch (Exception e) {
+                LOG.warning("No se pudo restablecer el auto-incremento de solicitudes: " + e.getMessage());
+            }
+
             LOG.info("Verificando datos iniciales de demostración...");
 
             // Estudiante de prueba

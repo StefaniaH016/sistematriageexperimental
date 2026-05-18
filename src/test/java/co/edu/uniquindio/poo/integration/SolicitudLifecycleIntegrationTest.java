@@ -35,6 +35,18 @@ class SolicitudLifecycleIntegrationTest {
         @Autowired
         private MockMvc mockMvc;
 
+        @Autowired
+        private co.edu.uniquindio.poo.repository.SolicitudRepository solicitudRepository;
+
+        @Autowired
+        private co.edu.uniquindio.poo.repository.HistorialSolicitudRepository historialRepository;
+
+        @org.junit.jupiter.api.BeforeAll
+        void setupAll() {
+                historialRepository.deleteAll();
+                solicitudRepository.deleteAll();
+        }
+
         private final ObjectMapper objectMapper = new ObjectMapper()
                         .registerModule(new JavaTimeModule());
 
@@ -54,6 +66,7 @@ class SolicitudLifecycleIntegrationTest {
         @DisplayName("Ciclo de vida - Paso 1: Registrar solicitud → REGISTRADA")
         void paso1_RegistrarSolicitud() throws Exception {
                 SolicitudRequestDTO request = SolicitudRequestDTO.builder()
+                                .titulo("Cancelación de Cálculo III")
                                 .descripcion("Necesito cancelar la asignatura de Cálculo III por urgencia, "
                                                 + "cierre de matrícula inminente")
                                 .canalOrigen(CanalOrigen.CSU)
@@ -211,7 +224,7 @@ class SolicitudLifecycleIntegrationTest {
                                 .with(httpBasic(ADMIN_EMAIL, ADMIN_PASS))
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(objectMapper.writeValueAsString(clasificacion)))
-                                .andExpect(status().isForbidden())
+                                .andExpect(status().isBadRequest())
                                 .andExpect(jsonPath("$.exitoso").value(false));
 
                 // Intentar repriorizar → debe fallar
@@ -224,7 +237,7 @@ class SolicitudLifecycleIntegrationTest {
                                 .with(httpBasic(ADMIN_EMAIL, ADMIN_PASS))
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(objectMapper.writeValueAsString(priorizacion)))
-                                .andExpect(status().isForbidden())
+                                .andExpect(status().isBadRequest())
                                 .andExpect(jsonPath("$.exitoso").value(false));
 
                 // Intentar reasignar → debe fallar
@@ -236,7 +249,7 @@ class SolicitudLifecycleIntegrationTest {
                                 .with(httpBasic(ADMIN_EMAIL, ADMIN_PASS))
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(objectMapper.writeValueAsString(asignacion)))
-                                .andExpect(status().isForbidden())
+                                .andExpect(status().isBadRequest())
                                 .andExpect(jsonPath("$.exitoso").value(false));
         }
 

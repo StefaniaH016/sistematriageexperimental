@@ -5,7 +5,6 @@ export enum TipoSolicitud {
   SOLICITUD_CUPOS = 'SOLICITUD_CUPOS',
   HOMOLOGACION = 'HOMOLOGACION',
   EXAMEN_SUPLETORIO = 'EXAMEN_SUPLETORIO',
-  HABILITACION = 'HABILITACION',
   // Trámites de matrícula y continuidad
   MODIFICACION_MATRICULA = 'MODIFICACION_MATRICULA',
   CANCELACION_SEMESTRE = 'CANCELACION_SEMESTRE',
@@ -14,16 +13,11 @@ export enum TipoSolicitud {
   TRANSFERENCIA_INTERNA = 'TRANSFERENCIA_INTERNA',
   // Trámites documentales
   CERTIFICADO_ESTUDIOS = 'CERTIFICADO_ESTUDIOS',
-  PAZ_Y_SALVO = 'PAZ_Y_SALVO',
-  ACTA_GRADO = 'ACTA_GRADO',
   // Apoyos y bienestar
   APOYO_ECONOMICO = 'APOYO_ECONOMICO',
-  BECA_DESCUENTO = 'BECA_DESCUENTO',
   APOYO_PSICOSOCIAL = 'APOYO_PSICOSOCIAL',
   // Procesos académicos especiales
-  RECONOCIMIENTO_CREDITOS = 'RECONOCIMIENTO_CREDITOS',
   TRABAJO_GRADO = 'TRABAJO_GRADO',
-  PRACTICA_EMPRESARIAL = 'PRACTICA_EMPRESARIAL',
   PROCESO_DISCIPLINARIO = 'PROCESO_DISCIPLINARIO',
   // General
   CONSULTA_ACADEMICA = 'CONSULTA_ACADEMICA'
@@ -62,23 +56,17 @@ export const TIPO_SOLICITUD_LABELS: Record<TipoSolicitud, string> = {
   [TipoSolicitud.REGISTRO_ASIGNATURAS]: 'Registro de Asignaturas',
   [TipoSolicitud.CANCELACION_ASIGNATURAS]: 'Cancelación de Asignaturas',
   [TipoSolicitud.SOLICITUD_CUPOS]: 'Solicitud de Cupos',
-  [TipoSolicitud.HOMOLOGACION]: 'Homologación',
-  [TipoSolicitud.EXAMEN_SUPLETORIO]: 'Examen Supletorio',
-  [TipoSolicitud.HABILITACION]: 'Examen de Habilitación',
+  [TipoSolicitud.HOMOLOGACION]: 'Homologación y Reconocimiento de Créditos',
+  [TipoSolicitud.EXAMEN_SUPLETORIO]: 'Examen Supletorio o Habilitación',
   [TipoSolicitud.MODIFICACION_MATRICULA]: 'Modificación de Matrícula',
   [TipoSolicitud.CANCELACION_SEMESTRE]: 'Cancelación de Semestre',
   [TipoSolicitud.RESERVA_CUPO]: 'Reserva de Cupo',
   [TipoSolicitud.REINGRESO]: 'Reingreso',
   [TipoSolicitud.TRANSFERENCIA_INTERNA]: 'Transferencia Interna de Programa',
-  [TipoSolicitud.CERTIFICADO_ESTUDIOS]: 'Certificado de Estudios',
-  [TipoSolicitud.PAZ_Y_SALVO]: 'Paz y Salvo Académico',
-  [TipoSolicitud.ACTA_GRADO]: 'Trámite de Acta de Grado',
-  [TipoSolicitud.APOYO_ECONOMICO]: 'Apoyo Económico',
-  [TipoSolicitud.BECA_DESCUENTO]: 'Beca o Descuento de Matrícula',
+  [TipoSolicitud.CERTIFICADO_ESTUDIOS]: 'Certificados y Documentos Académicos',
+  [TipoSolicitud.APOYO_ECONOMICO]: 'Apoyo Económico y Becas',
   [TipoSolicitud.APOYO_PSICOSOCIAL]: 'Apoyo Psicosocial',
-  [TipoSolicitud.RECONOCIMIENTO_CREDITOS]: 'Reconocimiento de Créditos',
-  [TipoSolicitud.TRABAJO_GRADO]: 'Trabajo de Grado',
-  [TipoSolicitud.PRACTICA_EMPRESARIAL]: 'Práctica Empresarial',
+  [TipoSolicitud.TRABAJO_GRADO]: 'Trabajo de Grado o Práctica Empresarial',
   [TipoSolicitud.PROCESO_DISCIPLINARIO]: 'Proceso Disciplinario / Apelación',
   [TipoSolicitud.CONSULTA_ACADEMICA]: 'Consulta Académica General'
 };

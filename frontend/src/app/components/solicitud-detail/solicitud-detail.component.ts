@@ -88,7 +88,7 @@ export class SolicitudDetailComponent implements OnInit {
   ngOnInit(): void {
     this.solicitudId = Number(this.route.snapshot.paramMap.get('id'));
     this.cargar();
-    this.usuarioService.listarPorRol(Rol.RESPONSABLE).pipe(
+    this.usuarioService.listarResponsablesActivos().pipe(
       finalize(() => this.cdr.markForCheck())
     ).subscribe({
       next: res => {

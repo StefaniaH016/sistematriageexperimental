@@ -66,6 +66,10 @@ public interface SolicitudRepository extends JpaRepository<Solicitud, Long> {
         @Query("SELECT s FROM Solicitud s WHERE s.responsable.id = :responsableId OR (s.responsable IS NULL AND s.estado != 'REGISTRADA')")
         List<Solicitud> findByResponsableIdOrUnassigned(@Param("responsableId") Long responsableId);
 
+        /** Contar solicitudes activas (no cerradas) de un responsable */
+        @Query("SELECT COUNT(s) FROM Solicitud s WHERE s.responsable.id = :responsableId AND s.estado != co.edu.uniquindio.poo.model.enums.EstadoSolicitud.CERRADA")
+        long countActiveByResponsableId(@Param("responsableId") Long responsableId);
+
         /** Contar solicitudes por estado */
         long countByEstado(EstadoSolicitud estado);
 }

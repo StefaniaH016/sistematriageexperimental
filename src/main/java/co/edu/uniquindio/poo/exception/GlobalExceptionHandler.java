@@ -36,7 +36,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(OperacionNoPermitidaException.class)
     public ResponseEntity<ApiResponseDTO<Void>> handleOperacionNoPermitida(OperacionNoPermitidaException ex) {
-        return ResponseEntity.status(HttpStatus.FORBIDDEN)
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                 .body(ApiResponseDTO.error(ex.getMessage()));
     }
 

@@ -30,6 +30,10 @@ export class UsuarioService {
     return this.http.get<ApiResponse<UsuarioResponse[]>>(`${this.url}/activos`);
   }
 
+  listarResponsablesActivos(): Observable<ApiResponse<UsuarioResponse[]>> {
+    return this.http.get<ApiResponse<UsuarioResponse[]>>(`${this.url}/responsables-activos`);
+  }
+
   actualizar(id: number, dto: UsuarioRequest): Observable<ApiResponse<UsuarioResponse>> {
     return this.http.put<ApiResponse<UsuarioResponse>>(`${this.url}/${id}`, dto);
   }

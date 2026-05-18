@@ -19,6 +19,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.beans.factory.annotation.Value;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -50,6 +51,9 @@ public class SolicitudService {
     private final ActorContextService actorContextService;
     private final EntityMapper mapper;
 
+    @Value("${solicitudes.limite-asignacion:5}")
+    private int limiteAsignacion;
+
     // ==================== RF-01: REGISTRO DE SOLICITUDES ====================
 
     /**
@@ -78,8 +82,24 @@ public class SolicitudService {
             throw new IllegalArgumentException("La fecha límite no puede ser anterior a la fecha actual");
         }
 
+        // Auto-generate title if null/blank to ensure backwards compatibility and robust content analysis
+        String titulo = request.getTitulo();
+        if (titulo == null || titulo.trim().isEmpty()) {
+            String desc = request.getDescripcion();
+            if (desc != null && !desc.trim().isEmpty()) {
+                int length = Math.min(desc.length(), 60);
+                titulo = desc.substring(0, length).trim();
+                if (desc.length() > 60) {
+                    titulo += "...";
+                }
+            } else {
+                titulo = "Solicitud sin título";
+            }
+        }
+
         // Crear la solicitud con estado inicial REGISTRADA
         Solicitud solicitud = Solicitud.builder()
+                .titulo(titulo)
                 .descripcion(request.getDescripcion())
                 .canalOrigen(request.getCanalOrigen())
                 .fechaRegistro(LocalDateTime.now())
@@ -259,6 +279,18 @@ public class SolicitudService {
         if (responsable.getRol() != Rol.RESPONSABLE && responsable.getRol() != Rol.ADMINISTRATIVO) {
             throw new OperacionNoPermitidaException(
                     "El usuario no tiene un rol válido para ser responsable de una solicitud");
+        }
+
+        // Regla de Negocio: Límite de asignaciones activas
+        boolean esNuevaAsignacion = solicitud.getResponsable() == null || !solicitud.getResponsable().getId().equals(responsable.getId());
+        if (esNuevaAsignacion) {
+            long solicitudesActivas = solicitudRepository.countActiveByResponsableId(responsable.getId());
+            if (solicitudesActivas >= limiteAsignacion) {
+                throw new OperacionNoPermitidaException(
+                        "El responsable " + responsable.getNombreCompleto() + 
+                        " ya cuenta con el límite máximo de solicitudes activas asignadas (" + limiteAsignacion + "). " +
+                        "Debe atender y resolver sus solicitudes actuales antes de recibir nuevas asignaciones.");
+            }
         }
 
         solicitud.asignarResponsable(responsable);

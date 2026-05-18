@@ -21,6 +21,7 @@ import java.util.List;
 public class SolicitudResponseDTO {
 
     private Long id;
+    private String titulo;
     private String tipoSolicitud;
     private String descripcion;
     private CanalOrigen canalOrigen;

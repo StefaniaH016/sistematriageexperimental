@@ -40,6 +40,10 @@ public class Solicitud {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    /** Título descriptivo de la solicitud */
+    @Column(length = 200)
+    private String titulo;
+
     /** RF-02: Tipo de solicitud (Registro, Homologación, Cancelación, Supletorio, etc.) */
     @Column(length = 100)
     private String tipoSolicitud;
