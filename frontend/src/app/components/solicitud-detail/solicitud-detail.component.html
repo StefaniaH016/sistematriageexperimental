@@ -253,7 +253,7 @@
           }
 
           <!-- RF-04: Cambiar estado (Admin o Responsable Asignado) -->
-          @if ((authService.currentUserValue?.rol === 'ADMINISTRATIVO' || (authService.currentUserValue?.rol === 'RESPONSABLE' && solicitud.responsable?.id === authService.currentUserValue?.id)) && !(authService.currentUserValue?.rol === 'ADMINISTRATIVO' && solicitud.estado === 'ATENDIDA') && estadosDisponibles.length > 0) {
+          @if ((authService.currentUserValue?.rol === 'ADMINISTRATIVO' || (authService.currentUserValue?.rol === 'RESPONSABLE' && solicitud.responsable?.id === authService.currentUserValue?.id)) && solicitud.estado !== 'ATENDIDA' && estadosDisponibles.length > 0) {
             <div class="action-section">
               <h3>Cambiar Estado</h3>
               <div class="action-form">
@@ -282,8 +282,8 @@
             </div>
           }
 
-          <!-- RF-08: Cerrar (Solo Administrativo) -->
-          @if (authService.currentUserValue?.rol === 'ADMINISTRATIVO' && solicitud.estado === 'ATENDIDA') {
+          <!-- RF-08: Cerrar (Admin o Responsable Asignado) -->
+          @if ((authService.currentUserValue?.rol === 'ADMINISTRATIVO' || (authService.currentUserValue?.rol === 'RESPONSABLE' && solicitud.responsable?.id === authService.currentUserValue?.id)) && solicitud.estado === 'ATENDIDA') {
             <div class="action-section action-cerrar">
               <h3>Cerrar Solicitud</h3>
               <div class="action-form">

@@ -316,11 +316,12 @@ public class SolicitudService {
      */
     public SolicitudResponseDTO cerrarSolicitud(Long solicitudId, CierreRequestDTO request) {
         Solicitud solicitud = buscarSolicitudPorId(solicitudId);
-        Usuario administrativo = actorContextService.obtenerActorActual();
+        Usuario usuario = actorContextService.obtenerActorActual();
 
         // RF-13: Autorización
-        if (administrativo.getRol() != Rol.ADMINISTRATIVO) {
-            throw new OperacionNoPermitidaException("Solo los usuarios administrativos pueden cerrar solicitudes.");
+        if (usuario.getRol() != Rol.ADMINISTRATIVO && 
+            (usuario.getRol() != Rol.RESPONSABLE || solicitud.getResponsable() == null || !solicitud.getResponsable().getId().equals(usuario.getId()))) {
+            throw new OperacionNoPermitidaException("Solo los usuarios administrativos o el responsable asignado pueden cerrar solicitudes.");
         }
 
         if (request.getObservacionCierre() == null || request.getObservacionCierre().trim().isEmpty()) {
@@ -339,7 +340,7 @@ public class SolicitudService {
 
         // RF-06: Registrar cierre en historial
         HistorialSolicitud historial = crearEntradaHistorial(
-                solicitud, administrativo,
+                solicitud, usuario,
                 "Solicitud cerrada",
                 request.getObservacionCierre());
         solicitud.agregarHistorial(historial);

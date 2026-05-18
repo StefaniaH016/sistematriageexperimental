@@ -62,7 +62,8 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.PUT, "/api/solicitudes/*/priorizar").hasRole("ADMINISTRATIVO")
                         .requestMatchers(HttpMethod.PUT, "/api/solicitudes/*/asignar")
                         .hasAnyRole("ADMINISTRATIVO", "RESPONSABLE")
-                        .requestMatchers(HttpMethod.PUT, "/api/solicitudes/*/cerrar").hasRole("ADMINISTRATIVO")
+                        .requestMatchers(HttpMethod.PUT, "/api/solicitudes/*/cerrar")
+                        .hasAnyRole("ADMINISTRATIVO", "RESPONSABLE")
                         .requestMatchers(HttpMethod.DELETE, "/api/solicitudes/**").hasRole("ADMINISTRATIVO")
 
                         // Usuarios - acceso más flexible para desarrollo
