@@ -11,9 +11,11 @@ import { AuthService } from '../../services/auth.service';
   styleUrls: ['./navbar.component.css']
 })
 export class NavbarComponent {
-  constructor(public authService: AuthService) {}
+  constructor(public authService: AuthService) { }
 
   logout(): void {
-    this.authService.logout();
+    if (confirm('¿Estás seguro de que quieres cerrar sesión?')) {
+      this.authService.logout();
+    }
   }
 }

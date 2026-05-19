@@ -82,7 +82,8 @@ public class SolicitudService {
             throw new IllegalArgumentException("La fecha límite no puede ser anterior a la fecha actual");
         }
 
-        // Auto-generate title if null/blank to ensure backwards compatibility and robust content analysis
+        // Auto-generate title if null/blank to ensure backwards compatibility and
+        // robust content analysis
         String titulo = request.getTitulo();
         if (titulo == null || titulo.trim().isEmpty()) {
             String desc = request.getDescripcion();
@@ -182,7 +183,8 @@ public class SolicitudService {
 
         // RF-13: Autorización
         if (usuario.getRol() != Rol.ADMINISTRATIVO) {
-            throw new OperacionNoPermitidaException("Solo los usuarios administrativos pueden priorizar solicitudes manualmente.");
+            throw new OperacionNoPermitidaException(
+                    "Solo los usuarios administrativos pueden priorizar solicitudes manualmente.");
         }
 
         validarNoEstaCerrada(solicitud);
@@ -256,15 +258,16 @@ public class SolicitudService {
         if (asignador.getRol() != Rol.ADMINISTRATIVO && asignador.getRol() != Rol.RESPONSABLE) {
             throw new OperacionNoPermitidaException("Rol no autorizado para asignar responsables.");
         }
-        
+
         // Un responsable solo puede asignarse la solicitud a sí mismo
         if (asignador.getRol() == Rol.RESPONSABLE && !asignador.getId().equals(request.getResponsableId())) {
             throw new OperacionNoPermitidaException("Un responsable solo puede autoasignarse solicitudes.");
         }
-        
+
         // Regla de Negocio: Un responsable no puede tomar solicitudes sin clasificar
         if (asignador.getRol() == Rol.RESPONSABLE && solicitud.getEstado() == EstadoSolicitud.REGISTRADA) {
-            throw new OperacionNoPermitidaException("Un responsable no puede tomar una solicitud que aún no ha sido clasificada por un administrador.");
+            throw new OperacionNoPermitidaException(
+                    "Un responsable no puede tomar una solicitud que aún no ha sido clasificada por un administrador.");
         }
 
         validarNoEstaCerrada(solicitud);
@@ -282,14 +285,16 @@ public class SolicitudService {
         }
 
         // Regla de Negocio: Límite de asignaciones activas
-        boolean esNuevaAsignacion = solicitud.getResponsable() == null || !solicitud.getResponsable().getId().equals(responsable.getId());
+        boolean esNuevaAsignacion = solicitud.getResponsable() == null
+                || !solicitud.getResponsable().getId().equals(responsable.getId());
         if (esNuevaAsignacion) {
             long solicitudesActivas = solicitudRepository.countActiveByResponsableId(responsable.getId());
             if (solicitudesActivas >= limiteAsignacion) {
                 throw new OperacionNoPermitidaException(
-                        "El responsable " + responsable.getNombreCompleto() + 
-                        " ya cuenta con el límite máximo de solicitudes activas asignadas (" + limiteAsignacion + "). " +
-                        "Debe atender y resolver sus solicitudes actuales antes de recibir nuevas asignaciones.");
+                        "El responsable " + responsable.getNombreCompleto() +
+                                " ya cuenta con el límite máximo de solicitudes activas asignadas (" + limiteAsignacion
+                                + "). " +
+                                "Debe atender y resolver sus solicitudes actuales antes de recibir nuevas asignaciones.");
             }
         }
 
@@ -319,9 +324,8 @@ public class SolicitudService {
         Usuario usuario = actorContextService.obtenerActorActual();
 
         // RF-13: Autorización
-        if (usuario.getRol() != Rol.ADMINISTRATIVO && 
-            (usuario.getRol() != Rol.RESPONSABLE || solicitud.getResponsable() == null || !solicitud.getResponsable().getId().equals(usuario.getId()))) {
-            throw new OperacionNoPermitidaException("Solo los usuarios administrativos o el responsable asignado pueden cerrar solicitudes.");
+        if (usuario.getRol() != Rol.ADMINISTRATIVO) {
+            throw new OperacionNoPermitidaException("Solo los usuarios administrativos pueden cerrar solicitudes.");
         }
 
         if (request.getObservacionCierre() == null || request.getObservacionCierre().trim().isEmpty()) {
@@ -431,7 +435,8 @@ public class SolicitudService {
     }
 
     /**
-     * Retorna únicamente las solicitudes del solicitante autenticado (ESTUDIANTE / DOCENTE).
+     * Retorna únicamente las solicitudes del solicitante autenticado (ESTUDIANTE /
+     * DOCENTE).
      * Un ADMINISTRATIVO ve todas.
      */
     @Transactional(readOnly = true)
