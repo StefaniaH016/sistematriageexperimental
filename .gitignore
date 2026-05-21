@@ -25,3 +25,10 @@ Thumbs.db
 
 # ─── Archivos temporales del proyecto ───
 guia_extraida.txt
+guide.md
+
+# ─── Configuración Local / Secrets ───
+.env
+.env.local
+.env.production
+*.env

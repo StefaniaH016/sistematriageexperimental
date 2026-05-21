@@ -1,0 +1,12 @@
+node_modules/
+dist/
+.angular/
+.git/
+.gitignore
+.idea/
+.vscode/
+.editorconfig
+.DS_Store
+Thumbs.db
+*.env
+.env*

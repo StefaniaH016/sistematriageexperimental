@@ -1,0 +1,16 @@
+target/
+.idea/
+*.iml
+.vscode/
+*.class
+.git/
+.gitignore
+Dockerfile
+.dockerignore
+.env
+.env.local
+*.log
+logs/
+.DS_Store
+Thumbs.db
+frontend/

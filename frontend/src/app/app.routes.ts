@@ -1,5 +1,5 @@
 import { Routes } from '@angular/router';
-import { LoginComponent } from './components/login/login.component';
+import { AuthComponent } from './components/auth/auth.component';
 import { DashboardComponent } from './components/dashboard/dashboard.component';
 import { SolicitudListComponent } from './components/solicitud-list/solicitud-list.component';
 import { SolicitudCreateComponent } from './components/solicitud-create/solicitud-create.component';
@@ -9,7 +9,7 @@ import { authGuard } from './core/guards/auth.guard';
 
 export const routes: Routes = [
   { path: '', redirectTo: '/login', pathMatch: 'full' },
-  { path: 'login', component: LoginComponent },
+  { path: 'login', component: AuthComponent },
   { path: 'dashboard', component: DashboardComponent, canActivate: [authGuard] },
   { path: 'solicitudes', component: SolicitudListComponent, canActivate: [authGuard] },
   { path: 'solicitudes/nueva', component: SolicitudCreateComponent, canActivate: [authGuard] },

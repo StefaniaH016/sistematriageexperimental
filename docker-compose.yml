@@ -1,0 +1,87 @@
+name: triage-sistema
+
+services:
+  # ────────────────────────────────────────────────────────
+  # BASE DE DATOS: MariaDB
+  # ────────────────────────────────────────────────────────
+  mariadb:
+    image: mariadb:10.11-jammy
+    container_name: triage-mariadb
+    restart: unless-stopped
+    environment:
+      MARIADB_DATABASE: ${DB_NAME:-solicitudesdb}
+      MARIADB_USER: ${DB_USER:-root}
+      MARIADB_PASSWORD: ${DB_PASSWORD:-root_password}
+      MARIADB_ALLOW_EMPTY_ROOT_PASSWORD: "yes"
+    ports:
+      - "${DB_PORT:-3307}:3306"
+    volumes:
+      - mariadb_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+    networks:
+      - triage-network
+
+  # ────────────────────────────────────────────────────────
+  # BACKEND: Spring Boot (Java 17)
+  # ────────────────────────────────────────────────────────
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: triage-backend
+    restart: unless-stopped
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      DB_URL: jdbc:mariadb://mariadb:3306/${DB_NAME:-solicitudesdb}
+      DB_USER: ${DB_USER:-root}
+      DB_PASSWORD: ${DB_PASSWORD:-root_password}
+      JWT_SECRET: ${JWT_SECRET}
+      GEMINI_API_KEY: ${GEMINI_API_KEY}
+    depends_on:
+      mariadb:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://localhost:8080/actuator/health || exit 0"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    networks:
+      - triage-network
+
+  # ────────────────────────────────────────────────────────
+  # FRONTEND: Angular + Nginx
+  # ────────────────────────────────────────────────────────
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: triage-frontend
+    restart: unless-stopped
+    ports:
+      - "${FRONTEND_PORT:-80}:80"
+    depends_on:
+      backend:
+        condition: service_healthy
+    networks:
+      - triage-network
+
+# ────────────────────────────────────────────────────────────
+# VOLÚMENES NOMBRADOS
+# ────────────────────────────────────────────────────────────
+volumes:
+  mariadb_data:
+    name: triage_mariadb_data
+
+# ────────────────────────────────────────────────────────────
+# REDES
+# ────────────────────────────────────────────────────────────
+networks:
+  triage-network:
+    name: triage_network
+    driver: bridge

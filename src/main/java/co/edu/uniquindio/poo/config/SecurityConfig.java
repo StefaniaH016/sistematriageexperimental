@@ -1,9 +1,12 @@
 package co.edu.uniquindio.poo.config;
 
+import java.time.Duration;
+import java.util.Arrays;
 import java.util.List;
 
 import co.edu.uniquindio.poo.security.JwtAuthenticationFilter;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -36,6 +39,9 @@ public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthFilter;
     private final UserDetailsService userDetailsService;
+
+    @Value("${app.cors.allowed-origin-patterns:http://localhost:*,https://localhost:*,http://127.0.0.1:*,https://127.0.0.1:*,https://*.vercel.app,https://*.railway.app}")
+    private String[] allowedOriginPatterns;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -76,6 +82,7 @@ public class SecurityConfig {
                         // IA
                         .requestMatchers(HttpMethod.GET, "/api/ia/**").authenticated()
                         .requestMatchers(HttpMethod.POST, "/api/ia/**").authenticated()
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
 
                         // Cualquier otra petición requiere autenticación
                         .anyRequest().authenticated())
@@ -94,11 +101,12 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOrigins(List.of("http://localhost:4200", "http://localhost:3000"));
-        config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        config.setAllowedOriginPatterns(Arrays.asList(allowedOriginPatterns));
+        config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH", "HEAD"));
         config.setAllowedHeaders(List.of("*"));
         config.setExposedHeaders(List.of("Authorization"));
         config.setAllowCredentials(true);
+        config.setMaxAge(Duration.ofHours(1));
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", config);
