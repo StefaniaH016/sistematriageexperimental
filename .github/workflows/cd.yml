@@ -21,23 +21,28 @@ jobs:
 
       - name: Build backend Docker image
         run: |
-          docker build -t ghcr.io/${{ github.repository_owner }}/triage-backend:${{ github.sha }} .
+          OWNER=$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')
+          docker build -t ghcr.io/$OWNER/triage-backend:${{ github.sha }} .
 
       - name: Push backend Docker image
         run: |
-          docker push ghcr.io/${{ github.repository_owner }}/triage-backend:${{ github.sha }}
+          OWNER=$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')
+          docker push ghcr.io/$OWNER/triage-backend:${{ github.sha }}
 
       - name: Build frontend Docker image
         run: |
-          docker build -t ghcr.io/${{ github.repository_owner }}/triage-frontend:${{ github.sha }} ./frontend
+          OWNER=$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')
+          docker build -t ghcr.io/$OWNER/triage-frontend:${{ github.sha }} ./frontend
 
       - name: Push frontend Docker image
         run: |
-          docker push ghcr.io/${{ github.repository_owner }}/triage-frontend:${{ github.sha }}
+          OWNER=$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')
+          docker push ghcr.io/$OWNER/triage-frontend:${{ github.sha }}
 
       - name: Tag latest images
         run: |
-          docker tag ghcr.io/${{ github.repository_owner }}/triage-backend:${{ github.sha }} ghcr.io/${{ github.repository_owner }}/triage-backend:latest
-          docker push ghcr.io/${{ github.repository_owner }}/triage-backend:latest
-          docker tag ghcr.io/${{ github.repository_owner }}/triage-frontend:${{ github.sha }} ghcr.io/${{ github.repository_owner }}/triage-frontend:latest
-          docker push ghcr.io/${{ github.repository_owner }}/triage-frontend:latest
+          OWNER=$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')
+          docker tag ghcr.io/$OWNER/triage-backend:${{ github.sha }} ghcr.io/$OWNER/triage-backend:latest
+          docker push ghcr.io/$OWNER/triage-backend:latest
+          docker tag ghcr.io/$OWNER/triage-frontend:${{ github.sha }} ghcr.io/$OWNER/triage-frontend:latest
+          docker push ghcr.io/$OWNER/triage-frontend:latest
