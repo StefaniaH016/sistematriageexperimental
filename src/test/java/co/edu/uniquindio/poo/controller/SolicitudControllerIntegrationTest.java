@@ -119,7 +119,7 @@ class SolicitudControllerIntegrationTest {
 
         @Test
         @Order(4)
-        @DisplayName("RF-02: Clasificar solicitud asigna tipo y cambia estado a CLASIFICADA")
+        @DisplayName("RF-02 + RF-03: Clasificar solicitud asigna tipo y calcula prioridad")
         void clasificarSolicitud_DebeAsignarTipoYPrioridad() throws Exception {
                 // Primero crear solicitud como estudiante
                 SolicitudRequestDTO createRequest = SolicitudRequestDTO.builder()
@@ -138,7 +138,7 @@ class SolicitudControllerIntegrationTest {
                 Long solicitudId = objectMapper.readTree(createResult.getResponse().getContentAsString())
                                 .get("datos").get("id").asLong();
 
-                // Clasificar como administrativo — solo asigna tipo, no prioridad
+                // Clasificar como administrativo
                 ClasificacionRequestDTO clasificacionRequest = ClasificacionRequestDTO.builder()
                                 .tipoSolicitud("Homologación")
                                 .observaciones("Clasificada como homologación")
@@ -151,7 +151,9 @@ class SolicitudControllerIntegrationTest {
                                 .andDo(print())
                                 .andExpect(status().isOk())
                                 .andExpect(jsonPath("$.datos.estado").value("CLASIFICADA"))
-                                .andExpect(jsonPath("$.datos.tipoSolicitud").value("Homologación"));
+                                .andExpect(jsonPath("$.datos.tipoSolicitud").value("Homologación"))
+                                .andExpect(jsonPath("$.datos.prioridad").exists())
+                                .andExpect(jsonPath("$.datos.justificacionPrioridad").exists());
         }
 
         // ==================== RF-04: TRANSICIÓN INVÁLIDA ====================
