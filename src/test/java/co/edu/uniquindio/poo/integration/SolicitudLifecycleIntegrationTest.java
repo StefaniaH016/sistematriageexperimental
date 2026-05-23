@@ -93,12 +93,11 @@ class SolicitudLifecycleIntegrationTest {
                                 .get("datos").get("id").asLong();
         }
 
-        // ==================== PASO 2: CLASIFICACIÓN (RF-02 + RF-03)
-        // ====================
+        // ==================== PASO 2: CLASIFICACIÓN (RF-02) ====================
 
         @Test
         @Order(2)
-        @DisplayName("Ciclo de vida - Paso 2: Clasificar + priorizar → CLASIFICADA")
+        @DisplayName("Ciclo de vida - Paso 2: Clasificar → CLASIFICADA (sin prioridad aún)")
         void paso2_ClasificarSolicitud() throws Exception {
                 ClasificacionRequestDTO request = ClasificacionRequestDTO.builder()
                                 .tipoSolicitud(TipoSolicitud.CANCELACION_ASIGNATURAS.name())
@@ -113,17 +112,38 @@ class SolicitudLifecycleIntegrationTest {
                                 .andExpect(status().isOk())
                                 .andExpect(jsonPath("$.datos.estado").value("CLASIFICADA"))
                                 .andExpect(jsonPath("$.datos.tipoSolicitud").value("CANCELACION_ASIGNATURAS"))
-                                .andExpect(jsonPath("$.datos.prioridad").exists())
-                                .andExpect(jsonPath("$.datos.justificacionPrioridad").isNotEmpty())
                                 // RF-06: Historial debe tener 2 entradas (registro + clasificación)
                                 .andExpect(jsonPath("$.datos.historial.length()").value(2));
+        }
+
+        // ==================== PASO 2B: PRIORIZACIÓN (RF-03) ====================
+
+        @Test
+        @Order(3)
+        @DisplayName("Ciclo de vida - Paso 2B: Priorizar solicitud (RF-03)")
+        void paso2b_PriorizarSolicitud() throws Exception {
+                PriorizacionRequestDTO request = PriorizacionRequestDTO.builder()
+                                .prioridad(Prioridad.ALTA)
+                                .justificacion("Cancelación de asignaturas con fecha límite próxima")
+                                .build();
+
+                mockMvc.perform(put("/api/solicitudes/" + solicitudId + "/priorizar")
+                                .with(httpBasic(ADMIN_EMAIL, ADMIN_PASS))
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(request)))
+                                .andDo(print())
+                                .andExpect(status().isOk())
+                                .andExpect(jsonPath("$.datos.prioridad").value("ALTA"))
+                                .andExpect(jsonPath("$.datos.justificacionPrioridad").isNotEmpty())
+                                // RF-06: Historial debe tener 3 entradas
+                                .andExpect(jsonPath("$.datos.historial.length()").value(3));
         }
 
         // ==================== PASO 3: ASIGNACIÓN DE RESPONSABLE (RF-05)
         // ====================
 
         @Test
-        @Order(3)
+        @Order(4)
         @DisplayName("Ciclo de vida - Paso 3: Asignar responsable")
         void paso3_AsignarResponsable() throws Exception {
                 AsignacionRequestDTO request = AsignacionRequestDTO.builder()
@@ -139,14 +159,14 @@ class SolicitudLifecycleIntegrationTest {
                                 .andExpect(status().isOk())
                                 .andExpect(jsonPath("$.datos.responsable.id").value(3))
                                 .andExpect(jsonPath("$.datos.responsable.nombre").value("Carlos"))
-                                // RF-06: Historial debe tener 3 entradas
-                                .andExpect(jsonPath("$.datos.historial.length()").value(3));
+                                // RF-06: Historial debe tener 4 entradas
+                                .andExpect(jsonPath("$.datos.historial.length()").value(4));
         }
 
         // ==================== PASO 4: EN ATENCIÓN (RF-04) ====================
 
         @Test
-        @Order(4)
+        @Order(5)
         @DisplayName("Ciclo de vida - Paso 4: Cambiar estado → EN_ATENCION")
         void paso4_CambiarAEnAtencion() throws Exception {
                 CambioEstadoRequestDTO request = CambioEstadoRequestDTO.builder()
@@ -161,13 +181,13 @@ class SolicitudLifecycleIntegrationTest {
                                 .andDo(print())
                                 .andExpect(status().isOk())
                                 .andExpect(jsonPath("$.datos.estado").value("EN_ATENCION"))
-                                .andExpect(jsonPath("$.datos.historial.length()").value(4));
+                                .andExpect(jsonPath("$.datos.historial.length()").value(5));
         }
 
         // ==================== PASO 5: ATENDIDA (RF-04) ====================
 
         @Test
-        @Order(5)
+        @Order(6)
         @DisplayName("Ciclo de vida - Paso 5: Cambiar estado → ATENDIDA")
         void paso5_CambiarAAtendida() throws Exception {
                 CambioEstadoRequestDTO request = CambioEstadoRequestDTO.builder()
@@ -182,13 +202,13 @@ class SolicitudLifecycleIntegrationTest {
                                 .andDo(print())
                                 .andExpect(status().isOk())
                                 .andExpect(jsonPath("$.datos.estado").value("ATENDIDA"))
-                                .andExpect(jsonPath("$.datos.historial.length()").value(5));
+                                .andExpect(jsonPath("$.datos.historial.length()").value(6));
         }
 
         // ==================== PASO 6: CIERRE (RF-08) ====================
 
         @Test
-        @Order(6)
+        @Order(7)
         @DisplayName("Ciclo de vida - Paso 6: Cerrar solicitud → CERRADA")
         void paso6_CerrarSolicitud() throws Exception {
                 CierreRequestDTO request = CierreRequestDTO.builder()
@@ -204,15 +224,14 @@ class SolicitudLifecycleIntegrationTest {
                                 .andExpect(status().isOk())
                                 .andExpect(jsonPath("$.datos.estado").value("CERRADA"))
                                 .andExpect(jsonPath("$.datos.observacionCierre").isNotEmpty())
-                                // RF-06: Historial completo con 6 entradas
-                                .andExpect(jsonPath("$.datos.historial.length()").value(6));
+                                // RF-06: Historial completo con 7 entradas
+                                .andExpect(jsonPath("$.datos.historial.length()").value(7));
         }
 
-        // ==================== PASO 7: SOLICITUD CERRADA NO SE MODIFICA (RF-08)
-        // ====================
+        // ==================== PASO 7: SOLICITUD CERRADA NO SE MODIFICA (RF-08) ====================
 
         @Test
-        @Order(7)
+        @Order(8)
         @DisplayName("Ciclo de vida - Paso 7: Solicitud cerrada NO permite modificaciones")
         void paso7_SolicitudCerradaInmutable() throws Exception {
                 // Intentar reclasificar → debe fallar
@@ -253,12 +272,11 @@ class SolicitudLifecycleIntegrationTest {
                                 .andExpect(jsonPath("$.exitoso").value(false));
         }
 
-        // ==================== PASO 8: VERIFICAR HISTORIAL COMPLETO (RF-06)
-        // ====================
+        // ==================== PASO 8: VERIFICAR HISTORIAL COMPLETO (RF-06) ====================
 
         @Test
-        @Order(8)
-        @DisplayName("Ciclo de vida - Paso 8: Historial completo con 6 acciones auditables")
+        @Order(9)
+        @DisplayName("Ciclo de vida - Paso 8: Historial completo con 7 acciones auditables")
         void paso8_VerificarHistorialCompleto() throws Exception {
                 mockMvc.perform(get("/api/solicitudes/" + solicitudId)
                                 .with(httpBasic(ADMIN_EMAIL, ADMIN_PASS))
@@ -266,21 +284,18 @@ class SolicitudLifecycleIntegrationTest {
                                 .andDo(print())
                                 .andExpect(status().isOk())
                                 .andExpect(jsonPath("$.datos.estado").value("CERRADA"))
-                                .andExpect(jsonPath("$.datos.historial.length()").value(6))
-                                // Verificar que cada entrada tiene los campos requeridos por RF-06
+                                .andExpect(jsonPath("$.datos.historial.length()").value(7))
                                 .andExpect(jsonPath("$.datos.historial[0].fechaHora").exists())
                                 .andExpect(jsonPath("$.datos.historial[0].accion").exists())
                                 .andExpect(jsonPath("$.datos.historial[0].nombreUsuario").exists())
-                                // Primera acción = registro
                                 .andExpect(jsonPath("$.datos.historial[0].accion").value("Solicitud registrada"))
-                                // Última acción = cierre
-                                .andExpect(jsonPath("$.datos.historial[5].accion").value("Solicitud cerrada"));
+                                .andExpect(jsonPath("$.datos.historial[6].accion").value("Solicitud cerrada"));
         }
 
         // ==================== CONSULTAS CON FILTROS (RF-07) ====================
 
         @Test
-        @Order(9)
+        @Order(10)
         @DisplayName("RF-07: Consultar solicitudes cerradas")
         void consultarSolicitudesCerradas() throws Exception {
                 mockMvc.perform(get("/api/solicitudes")
@@ -295,7 +310,7 @@ class SolicitudLifecycleIntegrationTest {
         }
 
         @Test
-        @Order(10)
+        @Order(11)
         @DisplayName("RF-07: Consultar solicitudes por tipo de solicitud")
         void consultarPorTipoSolicitud() throws Exception {
                 mockMvc.perform(get("/api/solicitudes")
