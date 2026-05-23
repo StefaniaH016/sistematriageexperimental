@@ -129,12 +129,13 @@ public class Solicitud {
     }
 
     /**
-     * RF-02: Clasifica la solicitud asignando el tipo y cambiando el estado.
-     * La prioridad se asigna en un paso separado (RF-03).
+     * RF-02 y RF-03: Clasifica la solicitud y asigna prioridad inicial automáticamente.
      */
-    public void clasificar(String tipoSolicitud) {
+    public void clasificar(String tipoSolicitud, Prioridad prioridad, String justificacionPrioridad) {
         validarMutabilidad();
         this.tipoSolicitud = tipoSolicitud;
+        this.prioridad = prioridad;
+        this.justificacionPrioridad = justificacionPrioridad;
         this.estado = EstadoSolicitud.CLASIFICADA;
     }
 
