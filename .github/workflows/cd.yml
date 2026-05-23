@@ -11,6 +11,7 @@ permissions:
 jobs:
   publish:
     runs-on: ubuntu-latest
+    needs: []
 
     steps:
       - name: Checkout repository
@@ -36,8 +37,8 @@ jobs:
           file: ./Dockerfile
           push: true
           tags: |
-            ghcr.io/${{ github.repository_owner.toLower() }}/triage-backend:${{ github.sha }}
-            ghcr.io/${{ github.repository_owner.toLower() }}/triage-backend:latest
+            ghcr.io/${{ github.repository_owner }}/triage-backend:${{ github.sha }}
+            ghcr.io/${{ github.repository_owner }}/triage-backend:latest
           platforms: linux/amd64
 
       - name: Build and push frontend Docker image
@@ -47,6 +48,6 @@ jobs:
           file: ./frontend/Dockerfile
           push: true
           tags: |
-            ghcr.io/${{ github.repository_owner.toLower() }}/triage-frontend:${{ github.sha }}
-            ghcr.io/${{ github.repository_owner.toLower() }}/triage-frontend:latest
+            ghcr.io/${{ github.repository_owner }}/triage-frontend:${{ github.sha }}
+            ghcr.io/${{ github.repository_owner }}/triage-frontend:latest
           platforms: linux/amd64
