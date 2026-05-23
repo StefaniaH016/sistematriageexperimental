@@ -64,9 +64,8 @@ public class SolicitudController {
     /**
      * Clasifica una solicitud según su tipo.
      * RF-02: Asigna tipo y cambia estado a CLASIFICADA.
-     * RF-03: Calcula prioridad automáticamente.
      */
-    @Operation(summary = "RF-02: Clasificar solicitud", description = "Asigna tipo de solicitud y calcula prioridad automáticamente")
+    @Operation(summary = "RF-02: Clasificar solicitud", description = "Asigna tipo de solicitud")
     @PutMapping("/{id}/clasificar")
     public ResponseEntity<ApiResponseDTO<SolicitudResponseDTO>> clasificarSolicitud(
             @PathVariable Long id,

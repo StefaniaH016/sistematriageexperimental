@@ -10,31 +10,29 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
-import java.util.logging.Logger;
-
 /**
- * Configuración para cargar datos iniciales de demostración.
- * Crea usuarios de prueba al iniciar la aplicación (solo con H2 en memoria).
+ * Configuración para cargar datos iniciales de demostración en MariaDB.
+ * Crea usuarios de prueba al iniciar la aplicación.
  */
 @Configuration
 @RequiredArgsConstructor
 public class DataInitConfig {
 
-    private static final Logger LOG = Logger.getLogger(DataInitConfig.class.getName());
-
     @Bean
-    CommandLineRunner initData(UsuarioRepository usuarioRepository, PasswordEncoder passwordEncoder, JdbcTemplate jdbcTemplate) {
+    CommandLineRunner initData(UsuarioRepository usuarioRepository, 
+                              PasswordEncoder passwordEncoder, 
+                              JdbcTemplate jdbcTemplate) {
         return args -> {
             try {
-                // Limpieza de base de datos para roles obsoletos (migración)
+                // Actualizar usuarios con rol obsoleto DOCENTE a RESPONSABLE
                 jdbcTemplate.execute("UPDATE usuarios SET rol = 'RESPONSABLE' WHERE rol = 'DOCENTE'");
-                LOG.info("Migración: Usuarios con rol DOCENTE actualizados a RESPONSABLE.");
+                System.out.println("✓ Migración completada: DOCENTE -> RESPONSABLE");
             } catch (Exception e) {
-                LOG.warning("No se pudo ejecutar migración de DOCENTE: " + e.getMessage());
+                System.out.println("⚠ Migración DOCENTE no disponible: " + e.getMessage());
             }
 
             try {
-                // Si hay una sola solicitud y su ID es mayor a 1, la movemos al ID 1 para reiniciar la numeración
+                // Si hay una sola solicitud con ID mayor a 1, reasignarla al ID 1
                 Integer count = jdbcTemplate.queryForObject("SELECT COUNT(*) FROM solicitudes", Integer.class);
                 if (count != null && count == 1) {
                     Long oldId = jdbcTemplate.queryForObject("SELECT id FROM solicitudes LIMIT 1", Long.class);
@@ -43,130 +41,78 @@ public class DataInitConfig {
                         jdbcTemplate.execute("UPDATE solicitudes SET id = 1 WHERE id = " + oldId);
                         jdbcTemplate.execute("UPDATE historial_solicitudes SET solicitud_id = 1 WHERE solicitud_id = " + oldId);
                         jdbcTemplate.execute("SET FOREIGN_KEY_CHECKS = 1");
-                        LOG.info("Base de datos: La única solicitud existente ha sido reasignada al ID 1.");
+                        System.out.println("✓ ID de solicitud restablecido a 1");
                     }
                 }
 
-                // Reiniciar auto-incremento de la tabla de solicitudes para mantener la enumeración limpia
                 jdbcTemplate.execute("ALTER TABLE solicitudes AUTO_INCREMENT = 1");
-                LOG.info("Base de datos: Auto-incremento de solicitudes restablecido.");
+                System.out.println("✓ Auto-incremento de solicitudes restablecido");
             } catch (Exception e) {
-                LOG.warning("No se pudo restablecer el auto-incremento de solicitudes: " + e.getMessage());
+                System.out.println("⚠ No se pudo restablecer auto-incremento: " + e.getMessage());
             }
 
-            LOG.info("Verificando datos iniciales de demostración...");
+            System.out.println("Creando usuarios de prueba...");
 
-            // Estudiante de prueba
-            usuarioRepository.findByEmail("juan.perez@uq.edu.co").ifPresentOrElse(
-                u -> {
-                    u.setIdentificacion("1001234567");
-                    u.setNombre("Juan");
-                    u.setApellido("Pérez");
-                    u.setRol(Rol.ESTUDIANTE);
-                    u.setPassword(passwordEncoder.encode("123456"));
-                    u.setActivo(true);
-                    usuarioRepository.save(u);
-                },
-                () -> usuarioRepository.save(Usuario.builder()
-                        .identificacion("1001234567")
-                        .nombre("Juan")
-                        .apellido("Pérez")
-                        .email("juan.perez@uq.edu.co")
-                        .rol(Rol.ESTUDIANTE)
-                        .password(passwordEncoder.encode("123456"))
-                        .activo(true)
-                        .build())
-            );
+            // Estudiante 1: Juan Pérez
+            crearOActualizarUsuario(usuarioRepository, passwordEncoder, 
+                "juan.perez@uq.edu.co", "1001234567", "Juan", "Pérez", Rol.ESTUDIANTE, "123456");
 
-            // Estudiante de prueba 2
-            usuarioRepository.findByEmail("maria.garcia@uq.edu.co").ifPresentOrElse(
-                u -> {
-                    u.setIdentificacion("1009876543");
-                    u.setNombre("María");
-                    u.setApellido("García");
-                    u.setRol(Rol.ESTUDIANTE);
-                    u.setPassword(passwordEncoder.encode("123456"));
-                    u.setActivo(true);
-                    usuarioRepository.save(u);
-                },
-                () -> usuarioRepository.save(Usuario.builder()
-                        .identificacion("1009876543")
-                        .nombre("María")
-                        .apellido("García")
-                        .email("maria.garcia@uq.edu.co")
-                        .rol(Rol.ESTUDIANTE)
-                        .password(passwordEncoder.encode("123456"))
-                        .activo(true)
-                        .build())
-            );
+            // Estudiante 2: María García
+            crearOActualizarUsuario(usuarioRepository, passwordEncoder, 
+                "maria.garcia@uq.edu.co", "1009876543", "María", "García", Rol.ESTUDIANTE, "123456");
 
-            // Docente / Responsable 1 (Carlos López)
-            usuarioRepository.findByEmail("carlos.lopez@uq.edu.co").ifPresentOrElse(
-                u -> {
-                    u.setIdentificacion("8001234567");
-                    u.setNombre("Carlos");
-                    u.setApellido("López");
-                    u.setRol(Rol.RESPONSABLE);
-                    u.setPassword(passwordEncoder.encode("123456"));
-                    u.setActivo(true);
-                    usuarioRepository.save(u);
-                },
-                () -> usuarioRepository.save(Usuario.builder()
-                        .identificacion("8001234567")
-                        .nombre("Carlos")
-                        .apellido("López")
-                        .email("carlos.lopez@uq.edu.co")
-                        .rol(Rol.RESPONSABLE)
-                        .password(passwordEncoder.encode("123456"))
-                        .activo(true)
-                        .build())
-            );
+            // Responsable 1: Carlos López
+            crearOActualizarUsuario(usuarioRepository, passwordEncoder, 
+                "carlos.lopez@uq.edu.co", "8001234567", "Carlos", "López", Rol.RESPONSABLE, "123456");
 
-            // Docente / Responsable 2 (Pedro Ramírez, para pruebas de DOCENTE_EMAIL)
-            usuarioRepository.findByEmail("pedro.ramirez@uq.edu.co").ifPresentOrElse(
-                u -> {
-                    u.setIdentificacion("8001234568");
-                    u.setNombre("Pedro");
-                    u.setApellido("Ramírez");
-                    u.setRol(Rol.RESPONSABLE);
-                    u.setPassword(passwordEncoder.encode("123456"));
-                    u.setActivo(true);
-                    usuarioRepository.save(u);
-                },
-                () -> usuarioRepository.save(Usuario.builder()
-                        .identificacion("8001234568")
-                        .nombre("Pedro")
-                        .apellido("Ramírez")
-                        .email("pedro.ramirez@uq.edu.co")
-                        .rol(Rol.RESPONSABLE)
-                        .password(passwordEncoder.encode("123456"))
-                        .activo(true)
-                        .build())
-            );
+            // Responsable 2: Pedro Ramírez
+            crearOActualizarUsuario(usuarioRepository, passwordEncoder, 
+                "pedro.ramirez@uq.edu.co", "8001234568", "Pedro", "Ramírez", Rol.RESPONSABLE, "123456");
 
-            // Administrativo
-            usuarioRepository.findByEmail("ana.martinez@uq.edu.co").ifPresentOrElse(
-                u -> {
-                    u.setIdentificacion("9001234567");
-                    u.setNombre("Ana");
-                    u.setApellido("Martínez");
-                    u.setRol(Rol.ADMINISTRATIVO);
-                    u.setPassword(passwordEncoder.encode("admin123"));
-                    u.setActivo(true);
-                    usuarioRepository.save(u);
-                },
-                () -> usuarioRepository.save(Usuario.builder()
-                        .identificacion("9001234567")
-                        .nombre("Ana")
-                        .apellido("Martínez")
-                        .email("ana.martinez@uq.edu.co")
-                        .rol(Rol.ADMINISTRATIVO)
-                        .password(passwordEncoder.encode("admin123"))
-                        .activo(true)
-                        .build())
-            );
+            // Administrativo: Ana Martínez
+            crearOActualizarUsuario(usuarioRepository, passwordEncoder, 
+                "ana.martinez@uq.edu.co", "9001234567", "Ana", "Martínez", Rol.ADMINISTRATIVO, "admin123");
 
-            LOG.info("Verificación de datos iniciales completada.");
+            System.out.println("✓ Usuarios de prueba listos");
         };
+    }
+
+    /**
+     * Crea o actualiza un usuario existente con los datos proporcionados.
+     */
+    @SuppressWarnings("null")
+    private void crearOActualizarUsuario(UsuarioRepository repo, 
+                                         PasswordEncoder encoder,
+                                         String email, 
+                                         String identificacion, 
+                                         String nombre, 
+                                         String apellido, 
+                                         Rol rol, 
+                                         String password) {
+        var usuarioOpt = repo.findByEmail(email);
+        
+        if (usuarioOpt.isPresent()) {
+            // Usuario existe: actualizar
+            Usuario usuario = usuarioOpt.get();
+            usuario.setIdentificacion(identificacion);
+            usuario.setNombre(nombre);
+            usuario.setApellido(apellido);
+            usuario.setRol(rol);
+            usuario.setPassword(encoder.encode(password));
+            usuario.setActivo(true);
+            repo.save(usuario);
+        } else {
+            // Usuario no existe: crear
+            Usuario usuario = Usuario.builder()
+                    .email(email)
+                    .identificacion(identificacion)
+                    .nombre(nombre)
+                    .apellido(apellido)
+                    .rol(rol)
+                    .password(encoder.encode(password))
+                    .activo(true)
+                    .build();
+            repo.save(usuario);
+        }
     }
 }

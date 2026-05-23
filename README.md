@@ -10,7 +10,7 @@ Esta implementación corresponde al **Hito 3 (Entrega Final)**: *Frontend en Ang
 - **Backend**: Java 17, Spring Boot 3.2.3, Spring Security (JWT), Spring Data JPA.
 - **Frontend**: Angular 17+ (Standalone Components), Node.js, TypeScript.
 - **Base de Datos**: MariaDB.
-- **Inteligencia Artificial**: Google Gemini API (1.5 Flash).
+- **Inteligencia Artificial**: Google Gemini API (3.5 Flash).
 - **Diseño UI/UX**: Premium Dark Mode, Glassmorphism, CSS Variables Globales.
 
 ---
@@ -32,7 +32,7 @@ Para mantener la seguridad del sistema y no exponer credenciales en el código, 
 - `JWT_SECRET`: Una cadena de texto segura (preferiblemente codificada en Base64) usada para firmar los tokens de autenticación.
 - `GEMINI_API_KEY`: Tu clave de API para Google Gemini, que puedes obtener en [Google AI Studio](https://aistudio.google.com/).
 
-**Ejemplo de cómo asignarlas temporalmente en Windows (PowerShell):**
+**Ejemplo de cómo asignarlas temporalmente en Windows 11 (PowerShell):**
 ```powershell
 $env:DB_PASSWORD="tu_password_de_mariadb"
 $env:JWT_SECRET="tu_secreto_jwt_en_base64_muy_seguro_y_largo_aqui="
@@ -60,7 +60,7 @@ El proyecto utiliza MariaDB en lugar de una base en memoria para garantizar pers
    ```
 
 ### PASO 2: Despliegue del Backend (Spring Boot)
-1. Abre una terminal (Símbolo del sistema, PowerShell o la terminal de tu IDE) ubicada en la **carpeta principal** del repositorio (donde está el `pom.xml`).
+1. Abre una terminal (PowerShell, CMD, o la terminal de VS Code) ubicada en la **carpeta principal** del repositorio (donde está el `pom.xml`).
 2. **Asegúrate de que las variables de entorno están asignadas** en esa misma terminal.
 3. Limpia, descarga dependencias y compila el proyecto ejecutando:
    ```bash
@@ -160,7 +160,7 @@ Este repositorio incluye dos flujos de trabajo de GitHub Actions:
    - `ghcr.io/<tu-usuario>/triage-backend:latest`
    o despliega desde el repositorio si Railway detecta tu `Dockerfile`.
 4. Agrega estas variables de entorno en Railway:
-   - `DB_URL` = la cadena JDBC que te da Railway (o `jdbc:mariadb://<host>:<port>/solicitudesdb`)
+   - `DB_URL` = la cadena JDBC que te da Railway (o `jdbc:mariadb://<host>:<port>/solicitudesdb`),
    - `DB_USER`
    - `DB_PASSWORD`
    - `JWT_SECRET`

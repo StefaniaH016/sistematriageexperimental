@@ -59,6 +59,7 @@ public class ActorContextService {
         return buscarUsuarioPorIdentidad(identidad);
     }
 
+    @SuppressWarnings("null")
     private Usuario obtenerDesdeSesionHttp() {
         if (!(RequestContextHolder.getRequestAttributes() instanceof ServletRequestAttributes attributes)) {
             return null;
@@ -86,6 +87,7 @@ public class ActorContextService {
         return usuarioRepository.findById(id).orElse(null);
     }
 
+    @SuppressWarnings("null")
     private Usuario buscarUsuarioPorIdentidad(String identidad) {
         return usuarioRepository.findByEmail(identidad)
                 .or(() -> usuarioRepository.findByIdentificacion(identidad))
