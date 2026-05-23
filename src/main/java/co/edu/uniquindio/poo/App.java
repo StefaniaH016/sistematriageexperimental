@@ -29,8 +29,8 @@ public class App {
         SpringApplication.run(App.class, args);
         System.out.println("============================================================");
         System.out.println("  Sistema de Triage y Gestión de Solicitudes Académicas");
-        System.out.println("  API REST disponible en: http://localhost:8080/api");
-        System.out.println("  Swagger UI: http://localhost:8080/swagger-ui.html");
+        System.out.println("  API REST disponible en: http://localhost/api");
+        System.out.println("  Swagger UI: http://localhost/swagger-ui.html");
         System.out.println("  Base de Datos: MariaDB en puerto 3307");
         System.out.println("============================================================");
     }
