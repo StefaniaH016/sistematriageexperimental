@@ -1,0 +1,10 @@
+{
+  "projectId": "fb3cb0de-0bae-49e6-bf5d-7e251c651e69",
+  "environmentId": "8b68a9b7-abda-41e8-99bc-ea2c8817744d",
+  "services": {
+    "sistematriageexperimental": {
+      "id": "4df4156e-9819-4c3e-ae4b-3cf537a467aa",
+      "name": "sistematriageexperimental"
+    }
+  }
+}
