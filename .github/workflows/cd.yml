@@ -80,12 +80,11 @@ jobs:
         env:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
         run: |
-          # Convertir owner a minúsculas (compatible con bash y sh)
           OWNER_LOWER=$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')
-          # Instalar Railway CLI
+         
           curl -fsSL https://railway.app/install.sh | sh
           export PATH="$HOME/.railway/bin:$PATH"
-          # Desplegar usando la imagen de GHCR
+         
           railway deploy --image "ghcr.io/${OWNER_LOWER}/triage-backend:${{ github.sha }}" --service triage-backend --prod
 
   # ──────────────────────────────────────────────────────────
@@ -117,7 +116,7 @@ jobs:
 
       - name: Verificar output del build
         run: |
-          if [ ! -f frontend/dist/frontend/browser/index.html ]; then
+          if [ ! -f /dist/frontend/browser/index.html ]; then
             echo "❌ index.html no encontrado"
             exit 1
           fi
