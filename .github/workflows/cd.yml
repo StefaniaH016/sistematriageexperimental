@@ -163,7 +163,7 @@ jobs:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
         run: |
           railway up \
-            --service triage-backend \
+            --service sistematriageexperimental \
             --detach
 
       # =====================================================
@@ -174,7 +174,7 @@ jobs:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
         run: |
           sleep 20
-          railway status --service triage-backend
+          railway status --service sistematriageexperimental
 
   # =========================================================
   # DEPLOY FRONTEND → VERCEL
