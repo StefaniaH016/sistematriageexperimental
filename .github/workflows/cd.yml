@@ -76,24 +76,15 @@ jobs:
       - name: Checkout del código
         uses: actions/checkout@v4
 
-      - name: Instalar Railway CLI
-        run: |
-          curl -fsSL https://railway.app/install.sh -o railway-install.sh
-          chmod +x railway-install.sh
-          ./railway-install.sh
-          echo "$HOME/.railway/bin" >> $GITHUB_PATH
-
-      - name: Deploy en Railway
+      - name: Desplegar en Railway
         env:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
-        run: railway up --service triage-backend --detach
-
-      - name: Verificar deploy
-        env:
-          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+          OWNER: ${{ github.repository_owner }}
         run: |
-          sleep 30
-          railway status --service triage-backend
+          # Instalar Railway CLI
+          curl -fsSL https://railway.app/install.sh | sh
+          # Desplegar usando la imagen de GHCR
+          railway deploy --image ghcr.io/${OWNER,,}/triage-backend:${{ github.sha }} --service triage-backend --prod
 
   # ──────────────────────────────────────────────────────────
   # JOB 3: Deploy frontend en Vercel (en paralelo con Railway)
