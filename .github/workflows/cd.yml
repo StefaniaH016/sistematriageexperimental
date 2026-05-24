@@ -106,40 +106,31 @@ jobs:
       # =====================================================
       # BUILD BACKEND
       # =====================================================
-      - name: Build y Push Backend
+      - name: Build y Push — triage-backend
         uses: docker/build-push-action@v5
         with:
-          context: /src
-          file: /src/Dockerfile
+         context: ./src
+         file: ./src/Dockerfile
+         push: true
+         tags: ${{ steps.meta-backend.outputs.tags }}
+         labels: ${{ steps.meta-backend.outputs.labels }}
+         platforms: linux/amd64
+         cache-from: type=gha,scope=backend
+         cache-to: type=gha,scope=backend,mode=max
 
-          push: true
 
-          tags: ${{ steps.meta-backend.outputs.tags }}
-          labels: ${{ steps.meta-backend.outputs.labels }}
-
-          platforms: linux/amd64
-
-          cache-from: type=gha,scope=backend
-          cache-to: type=gha,scope=backend,mode=max
-
-      # =====================================================
-      # BUILD FRONTEND
-      # =====================================================
-      - name: Build y Push Frontend
+      - name: Build y Push — triage-frontend
         uses: docker/build-push-action@v5
         with:
-          context: /frontend
-          file: /frontend/Dockerfile
+         context: ./frontend
+         file: ./frontend/Dockerfile
+         push: true
+         tags: ${{ steps.meta-frontend.outputs.tags }}
+         labels: ${{ steps.meta-frontend.outputs.labels }}
+         platforms: linux/amd64
+         cache-from: type=gha,scope=frontend
+         cache-to: type=gha,scope=frontend,mode=max
 
-          push: true
-
-          tags: ${{ steps.meta-frontend.outputs.tags }}
-          labels: ${{ steps.meta-frontend.outputs.labels }}
-
-          platforms: linux/amd64
-
-          cache-from: type=gha,scope=frontend
-          cache-to: type=gha,scope=frontend,mode=max
 
   # =========================================================
   # DEPLOY BACKEND → RAILWAY
