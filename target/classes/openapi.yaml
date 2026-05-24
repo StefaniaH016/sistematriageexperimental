@@ -6,7 +6,7 @@ info:
     API REST del Sistema de Triage y Gestión de Solicitudes Académicas del
     Programa de Ingeniería de Sistemas y Computación — Universidad del Quindío.
 
-    ## Hito 1 — Diseño de Contratos API (Semanas 1–5)
+    ## Hito 1 — Diseño de Contratos API (Semanas 1-5)
 
     Este documento especifica todos los contratos de la API REST conforme a los
     Requisitos Funcionales RF-01 al RF-13.
