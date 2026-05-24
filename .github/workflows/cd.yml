@@ -173,8 +173,14 @@ jobs:
         env:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
         run: |
+          SERVICE_ID="4df4156e-9819-4c3e-ae4b-3cf537a467aa"
           sleep 20
-          railway status --service sistematriageexperimental
+          echo "Railway whoami (verificar token):"
+          docker run --rm -e RAILWAY_TOKEN="${RAILWAY_TOKEN}" ghcr.io/railwayapp/cli:latest whoami || true
+          echo "Railway status para el servicio ${SERVICE_ID}:"
+          docker run --rm -e RAILWAY_TOKEN="${RAILWAY_TOKEN}" ghcr.io/railwayapp/cli:latest status --service "${SERVICE_ID}" || true
+          echo "Listado de servicios (por si acaso):"
+          docker run --rm -e RAILWAY_TOKEN="${RAILWAY_TOKEN}" ghcr.io/railwayapp/cli:latest services || true
 
   # =========================================================
   # DEPLOY FRONTEND → VERCEL
