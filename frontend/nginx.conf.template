@@ -1,0 +1,59 @@
+upstream backend {
+    server {{BACKEND_URL}};
+}
+
+server {
+    listen 80;
+    server_name _;
+
+    root /usr/share/nginx/html;
+    index index.html;
+
+    gzip on;
+    gzip_vary on;
+    gzip_min_length 1000;
+    gzip_proxied any;
+    gzip_types text/plain text/css text/xml text/javascript application/javascript application/json image/svg+xml;
+
+    client_max_body_size 50M;
+
+    location /api/ {
+        proxy_pass http://backend;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+        proxy_buffering off;
+        proxy_connect_timeout 60s;
+        proxy_send_timeout 60s;
+        proxy_read_timeout 120s;
+    }
+
+    location /swagger-ui/ { proxy_pass http://backend/swagger-ui/; }
+    location /swagger-ui.html { proxy_pass http://backend/swagger-ui.html; }
+    location /api-docs { proxy_pass http://backend/api-docs; }
+    location /webjars/ { proxy_pass http://backend/webjars/; }
+
+    location ~* ^(?!/swagger-ui|/api-docs|/webjars).+\.(js|css|png|jpg|jpeg|gif|svg|ico|woff2?|ttf|eot)$ {
+        expires 30d;
+        add_header Cache-Control "public, immutable";
+        try_files $uri =404;
+    }
+
+    location / {
+        try_files $uri $uri/ /index.html;
+        add_header Cache-Control "no-store, no-cache, must-revalidate, proxy-revalidate" always;
+        add_header Pragma "no-cache" always;
+        expires 0;
+    }
+
+    add_header X-Frame-Options "SAMEORIGIN" always;
+    add_header X-Content-Type-Options "nosniff" always;
+    add_header Referrer-Policy "no-referrer-when-downgrade" always;
+    add_header Strict-Transport-Security "max-age=31536000; includeSubDomains; preload" always;
+
+    server_tokens off;
+}
