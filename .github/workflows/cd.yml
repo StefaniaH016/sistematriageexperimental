@@ -109,8 +109,8 @@ jobs:
       - name: Build y Push Backend
         uses: docker/build-push-action@v5
         with:
-          context: ./src
-          file: ./src/Dockerfile
+          context: /src
+          file: /src/Dockerfile
 
           push: true
 
@@ -128,8 +128,8 @@ jobs:
       - name: Build y Push Frontend
         uses: docker/build-push-action@v5
         with:
-          context: ./frontend
-          file: ./frontend/Dockerfile
+          context: /frontend
+          file: /frontend/Dockerfile
 
           push: true
 
