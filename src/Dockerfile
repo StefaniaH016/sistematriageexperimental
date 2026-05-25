@@ -2,17 +2,28 @@
 FROM maven:3.9-eclipse-temurin-17 AS build
 WORKDIR /workspace
 
+# Mostrar versiones
+RUN echo "=== Maven ===" && mvn -v && echo "=== Java ===" && java -version
+
 # Copiar pom para cachear dependencias
 COPY pom.xml ./
-RUN mvn -B dependency:go-offline
+RUN echo "=== Descargando dependencias ===" && mvn -B dependency:go-offline
 
-# Copiar código fuente y compilar
-# El contexto de build es la raíz del proyecto, así que src/ está disponible
+# Copiar código fuente
 COPY src ./src
-RUN mvn -B -DskipTests clean package
+RUN echo "=== Listando archivos antes del build ===" && ls -la
+
+# Compilar y empaquetar
+RUN echo "=== Compilando con Maven ===" && mvn -B -DskipTests clean package
 
 # Verificar que el JAR se generó
-RUN ls -lah /workspace/target/
+RUN echo "=== Verificando JAR ===" && ls -lah /workspace/target/ && \
+    if [ ! -f /workspace/target/sistematriageexperimental-0.0.1-SNAPSHOT.jar ]; then \
+      echo "ERROR: JAR NO ENCONTRADO"; \
+      find /workspace/target -type f; \
+      exit 1; \
+    fi && \
+    echo "SUCCESS: JAR encontrado"
 
 # ---------- ETAPA 2: RUNTIME ----------
 FROM eclipse-temurin:17-jre-jammy AS runtime
@@ -25,7 +36,6 @@ RUN addgroup --system triage && adduser --system --ingroup triage triage
 WORKDIR /app
 
 # Copiar el JAR compilado desde la etapa build
-# Usar la ruta exacta del JAR generado por Maven
 COPY --from=build /workspace/target/sistematriageexperimental-0.0.1-SNAPSHOT.jar app.jar
 RUN chown triage:triage app.jar && chmod 500 app.jar
 
