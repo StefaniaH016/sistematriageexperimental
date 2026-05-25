@@ -1,7 +1,16 @@
-# ---------- ETAPA: RUNTIME ----------
-# Este Dockerfile usa el JAR precompilado en lugar de compilar Maven
-# Esto es más rápido y confiable en Railway
+# ---------- ETAPA 1: BUILD ----------
+FROM maven:3.9-eclipse-temurin-17 AS build
+WORKDIR /workspace
 
+# Copiar pom para cachear dependencias
+COPY pom.xml ./
+RUN mvn -B dependency:go-offline
+
+# Copiar código fuente y compilar
+COPY src ./src
+RUN mvn -B -DskipTests package
+
+# ---------- ETAPA 2: RUNTIME ----------
 FROM eclipse-temurin:17-jre-jammy AS runtime
 LABEL maintainer="UniQuindío"
 LABEL description="Backend del Sistema de Triage y Gestión de Solicitudes Académicas"
@@ -11,8 +20,9 @@ RUN addgroup --system triage && adduser --system --ingroup triage triage
 
 WORKDIR /app
 
-# Copiar el JAR precompilado desde el repositorio
-COPY target/sistematriageexperimental-0.0.1-SNAPSHOT.jar app.jar
+# Copiar el JAR compilado desde la etapa build
+ARG JAR_FILE=target/*.jar
+COPY --from=build /workspace/${JAR_FILE} app.jar
 RUN chown triage:triage app.jar && chmod 500 app.jar
 
 ENV SPRING_PROFILES_ACTIVE=prod
