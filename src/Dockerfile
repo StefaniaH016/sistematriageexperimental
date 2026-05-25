@@ -1,18 +1,14 @@
-# ---------- ETAPA 1: BUILD (Compilar con Maven) ----------
+# ---------- ETAPA 1: BUILD ----------
 FROM maven:3.9-eclipse-temurin-17 AS build
 WORKDIR /workspace
 
-# Copiar pom.xml
-COPY pom.xml .
-
-# Descargar dependencias
+# Copiar pom para cachear dependencias
+COPY pom.xml ./
 RUN mvn -B dependency:go-offline
 
-# Copiar código fuente
+# Copiar código fuente y compilar
 COPY src ./src
-
-# Compilar y empaquetar
-RUN mvn -B -DskipTests clean package
+RUN mvn -B -DskipTests package
 
 # ---------- ETAPA 2: RUNTIME ----------
 FROM eclipse-temurin:17-jre-jammy AS runtime
@@ -25,7 +21,8 @@ RUN addgroup --system triage && adduser --system --ingroup triage triage
 WORKDIR /app
 
 # Copiar el JAR compilado desde la etapa build
-COPY --from=build /workspace/target/sistematriageexperimental-0.0.1-SNAPSHOT.jar app.jar
+ARG JAR_FILE=target/*.jar
+COPY --from=build /workspace/${JAR_FILE} app.jar
 RUN chown triage:triage app.jar && chmod 500 app.jar
 
 ENV SPRING_PROFILES_ACTIVE=prod
