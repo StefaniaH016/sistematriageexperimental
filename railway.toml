@@ -3,8 +3,8 @@
 
 [build]
 builder = "dockerfile"
-dockerfile = "./src/Dockerfile"
+dockerfile = "./Dockerfile"
 
 [deploy]
-startCommand = "java -jar target/sistematriageexperimental-0.0.1-SNAPSHOT.jar"
+startCommand = "java -jar /app/app.jar"
 
