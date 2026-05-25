@@ -14,6 +14,10 @@
 
 4. **railway.toml**: Creado para configuración de Railway
 
+5. **Dockerfile**: Multi-etapa que compila con Maven y genera el JAR
+
+6. **Procfile**: Configurado para ejecutar el JAR en Railway
+
 ## 🔧 Lo que DEBES hacer en Railway Dashboard:
 
 ### Paso 1: Verificar el Plugin MySQL/MariaDB
@@ -45,7 +49,15 @@
    - `JWT_SECRET` → tu clave secreta JWT
    - `GEMINI_API_KEY` → tu clave de API de Gemini (si usas IA)
 
-### Paso 3: Redeploy
+### Paso 3: Configurar el Build
+1. En el servicio **sistematriageexperimental**, ve a la pestaña **Settings**
+2. Busca **Build Command** y asegúrate de que esté vacío o es `mvn clean package -DskipTests`
+3. Busca **Start Command** y asegúrate de que sea:
+   ```
+   java -jar target/sistematriageexperimental-0.0.1-SNAPSHOT.jar
+   ```
+
+### Paso 4: Redeploy
 1. En el servicio **sistematriageexperimental**, haz clic en **Redeploy**
 2. Espera a que termine el deploy
 3. Verifica los logs para confirmar que:
@@ -66,6 +78,7 @@ HikariPool-1 - HikariPool (HikariPool-1) is now active
 ```
 Connection refused
 Unable to connect to database
+Unable to access jarfile
 ```
 
 ## 🚀 Próximos pasos después del deploy:
@@ -80,3 +93,13 @@ Unable to connect to database
 - En Railway, el MySQL usa puerto 3306 internamente
 - Las variables `MYSQL*` son proporcionadas automáticamente por el plugin de Railway
 - El perfil `prod` se activa automáticamente en el workflow de CD
+- El JAR se genera automáticamente en el build de Docker
+
+## 🐛 Si sigue habiendo problemas:
+
+1. Verifica que el `pom.xml` tenga el `artifactId` correcto: `sistematriageexperimental`
+2. Verifica que el `version` sea: `0.0.1-SNAPSHOT`
+3. Verifica que el Dockerfile esté en `src/Dockerfile`
+4. Verifica que el contexto de build en GitHub Actions sea `.` (raíz)
+5. Revisa los logs de build en GitHub Actions para ver si hay errores de Maven
+
