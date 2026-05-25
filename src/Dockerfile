@@ -2,13 +2,23 @@
 FROM maven:3.9-eclipse-temurin-17 AS build
 WORKDIR /workspace
 
-# Copiar pom para cachear dependencias
-COPY pom.xml ./
-RUN mvn -B dependency:go-offline
+# Copiar pom.xml
+COPY pom.xml .
 
-# Copiar código fuente completo y compilar
-COPY . .
-RUN mvn -B -DskipTests clean package
+# Descargar dependencias (con más verbosidad)
+RUN mvn -B -e -X dependency:go-offline 2>&1 | tail -100
+
+# Copiar todo el código fuente
+COPY src ./src
+
+# Compilar y empaquetar (con más verbosidad)
+RUN mvn -B -e -DskipTests clean package
+
+# Verificar que el JAR se generó
+RUN echo "=== Contenido de /workspace/target ===" && \
+    ls -lah /workspace/target/ && \
+    echo "=== Buscando JAR ===" && \
+    find /workspace/target -name "*.jar" -type f
 
 # ---------- ETAPA 2: RUNTIME ----------
 FROM eclipse-temurin:17-jre-jammy AS runtime
