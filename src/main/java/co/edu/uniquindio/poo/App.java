@@ -31,7 +31,7 @@ public class App {
         System.out.println("  Sistema de Triage y Gestión de Solicitudes Académicas");
         System.out.println("  API REST disponible en: http://localhost/api");
         System.out.println("  Swagger UI: http://localhost/swagger-ui.html");
-        System.out.println("  Base de Datos: MariaDB en puerto 3308 railway");
+        System.out.println("  Base de Datos: PostgreSQL en Railway");
         System.out.println("============================================================");
     }
 
