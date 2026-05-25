@@ -148,9 +148,8 @@ jobs:
       # =====================================================
       # INSTALL RAILWAY
       # =====================================================
-      - name: Instalar Railway CLI (npm)
+      - name: Instalar Railway CLI
         run: npm install -g @railway/cli
-
 
       - name: Verificar Railway
         run: railway --version
@@ -158,29 +157,23 @@ jobs:
       # =====================================================
       # DEPLOY
       # =====================================================
-      - name: Deploy Railway
+      - name: Deploy Backend a Railway
         env:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
         run: |
-          railway up \
+          railway deploy \
             --service sistematriageexperimental \
             --detach
-
+      
       # =====================================================
-      # STATUS
+      # CONFIGURAR VARIABLES DE ENTORNO
       # =====================================================
-      - name: Verificar deploy
+      - name: Configurar SPRING_PROFILES_ACTIVE en Railway
         env:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
         run: |
-          SERVICE_ID="4df4156e-9819-4c3e-ae4b-3cf537a467aa"
-          sleep 20
-          echo "Railway whoami (verificar token):"
-          docker run --rm -e RAILWAY_TOKEN="${RAILWAY_TOKEN}" ghcr.io/railwayapp/cli:latest whoami || true
-          echo "Railway status para el servicio ${SERVICE_ID}:"
-          docker run --rm -e RAILWAY_TOKEN="${RAILWAY_TOKEN}" ghcr.io/railwayapp/cli:latest status --service "${SERVICE_ID}" || true
-          echo "Listado de servicios (por si acaso):"
-          docker run --rm -e RAILWAY_TOKEN="${RAILWAY_TOKEN}" ghcr.io/railwayapp/cli:latest services || true
+          railway variable set SPRING_PROFILES_ACTIVE=prod \
+            --service sistematriageexperimental || echo "Variable ya existe o no se pudo establecer"
 
   # =========================================================
   # DEPLOY FRONTEND → VERCEL

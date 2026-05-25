@@ -1,0 +1,13 @@
+# Railway Configuration
+# Este archivo configura las variables de entorno para el backend
+
+[build]
+builder = "dockerfile"
+dockerfile = "./src/Dockerfile"
+
+[deploy]
+startCommand = "java -jar target/sistematriageexperimental-0.0.1-SNAPSHOT.jar"
+
+[[services]]
+name = "sistematriageexperimental"
+buildCommand = "mvn clean package -DskipTests"
