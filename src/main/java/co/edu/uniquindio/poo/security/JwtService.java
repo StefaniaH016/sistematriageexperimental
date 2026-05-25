@@ -63,13 +63,21 @@ public class JwtService {
      * Genera un token JWT con claims adicionales.
      */
     public String generateToken(Map<String, Object> extraClaims, UserDetails userDetails) {
-        return Jwts.builder()
-                .claims(extraClaims)
-                .subject(userDetails.getUsername())
-                .issuedAt(new Date(System.currentTimeMillis()))
-                .expiration(new Date(System.currentTimeMillis() + jwtExpiration))
-                .signWith(getSignInKey(), Jwts.SIG.HS256)
-                .compact();
+        try {
+            String token = Jwts.builder()
+                    .claims(extraClaims)
+                    .subject(userDetails.getUsername())
+                    .issuedAt(new Date(System.currentTimeMillis()))
+                    .expiration(new Date(System.currentTimeMillis() + jwtExpiration))
+                    .signWith(getSignInKey(), Jwts.SIG.HS256)
+                    .compact();
+            System.out.println("✓ JWT Token generado exitosamente para: " + userDetails.getUsername());
+            return token;
+        } catch (Exception e) {
+            System.out.println("❌ Error generando JWT Token: " + e.getMessage());
+            e.printStackTrace();
+            throw new RuntimeException("Error generando JWT Token", e);
+        }
     }
 
     /**
@@ -107,9 +115,24 @@ public class JwtService {
 
     /**
      * Obtiene la clave de firma a partir del secret.
+     * Maneja tanto secrets en BASE64 como en texto plano.
      */
     private SecretKey getSignInKey() {
-        byte[] keyBytes = Decoders.BASE64.decode(secretKey);
+        if (secretKey == null || secretKey.isEmpty()) {
+            System.out.println("❌ ERROR: JWT_SECRET no está configurado!");
+            throw new RuntimeException("JWT_SECRET environment variable is not set");
+        }
+        
+        byte[] keyBytes;
+        try {
+            // Intentar decodificar como BASE64
+            keyBytes = Decoders.BASE64.decode(secretKey);
+            System.out.println("✓ JWT_SECRET decodificado como BASE64");
+        } catch (IllegalArgumentException e) {
+            // Si no es BASE64 válido, usar como texto plano
+            System.out.println("⚠️  JWT_SECRET no está en BASE64, usando como texto plano");
+            keyBytes = secretKey.getBytes();
+        }
         return Keys.hmacShaKeyFor(keyBytes);
     }
 

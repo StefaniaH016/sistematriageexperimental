@@ -43,6 +43,7 @@ co\edu\uniquindio\poo\dto\usuario\UsuarioResponseDTO.class
 co\edu\uniquindio\poo\dto\solicitud\SolicitudRequestDTO$SolicitudRequestDTOBuilder.class
 co\edu\uniquindio\poo\service\PriorizacionService.class
 co\edu\uniquindio\poo\service\AsistenciaIAService.class
+co\edu\uniquindio\poo\config\DataSourceConfig.class
 co\edu\uniquindio\poo\repository\UsuarioRepository.class
 co\edu\uniquindio\poo\controller\ApiController.class
 co\edu\uniquindio\poo\controller\HistorialController.class
