@@ -2,17 +2,7 @@
   "version": 2,
   "buildCommand": "ng build --configuration production",
   "outputDirectory": "dist/frontend/browser",
-  "env": {
-    "BACKEND_URL": "@backend_url"
-  },
   "routes": [
-    {
-      "src": "/api/v1/(.*)",
-      "dest": "https://sistematriageexperimental-production.up.railway.app/api/v1/$1",
-      "headers": {
-        "Access-Control-Allow-Origin": "*"
-      }
-    },
     {
       "src": "/assets/(.*)",
       "dest": "/assets/$1"
