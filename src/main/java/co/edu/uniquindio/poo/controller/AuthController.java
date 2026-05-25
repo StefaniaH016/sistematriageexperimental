@@ -69,4 +69,10 @@ public class AuthController {
         UsuarioResponseDTO response = usuarioService.registrarUsuario(request);
         return ResponseEntity.status(201).body(ApiResponseDTO.exitoso("Usuario registrado con exito", response));
     }
+
+    @GetMapping("/debug/usuarios")
+    public ResponseEntity<ApiResponseDTO<Object>> debugUsuarios() {
+        var usuarios = usuarioRepository.findAll();
+        return ResponseEntity.ok(ApiResponseDTO.exitoso("Usuarios en BD", usuarios));
+    }
 }
