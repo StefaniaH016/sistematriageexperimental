@@ -1,24 +1,18 @@
-# ---------- ETAPA 1: BUILD ----------
+# ---------- ETAPA 1: BUILD (Compilar con Maven) ----------
 FROM maven:3.9-eclipse-temurin-17 AS build
 WORKDIR /workspace
 
 # Copiar pom.xml
 COPY pom.xml .
 
-# Descargar dependencias (con más verbosidad)
-RUN mvn -B -e -X dependency:go-offline 2>&1 | tail -100
+# Descargar dependencias
+RUN mvn -B dependency:go-offline
 
-# Copiar todo el código fuente
+# Copiar código fuente
 COPY src ./src
 
-# Compilar y empaquetar (con más verbosidad)
-RUN mvn -B -e -DskipTests clean package
-
-# Verificar que el JAR se generó
-RUN echo "=== Contenido de /workspace/target ===" && \
-    ls -lah /workspace/target/ && \
-    echo "=== Buscando JAR ===" && \
-    find /workspace/target -name "*.jar" -type f
+# Compilar y empaquetar
+RUN mvn -B -DskipTests clean package
 
 # ---------- ETAPA 2: RUNTIME ----------
 FROM eclipse-temurin:17-jre-jammy AS runtime
