@@ -13,8 +13,8 @@
     </parent>
 
     <groupId>co.edu.uniquindio.poo</groupId>
-    <artifactId>proyectofinal</artifactId>
-    <version>1.0</version>
+    <artifactId>sistematriageexperimental</artifactId>
+    <version>0.0.1-SNAPSHOT</version>
     <name>Sistema de Triage y Gestión de Solicitudes Académicas</name>
     <description>Sistema para gestionar solicitudes académicas con triage, priorización y trazabilidad</description>
 
