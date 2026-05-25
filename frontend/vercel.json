@@ -1,33 +1,19 @@
 {
+  "version": 2,
   "buildCommand": "ng build --configuration production",
-  "outputDirectory": "dist/triage-frontend/browser",
-  "rewrites": [
+  "outputDirectory": "dist/frontend/browser",
+  "routes": [
     {
-      "source": "/api/:path*",
-      "destination": "https://sistematriageexperimental-production.up.railway.app/api/:path*"
-    }
-  ],
-  "headers": [
+      "src": "/assets/(.*)",
+      "dest": "/assets/$1"
+    },
     {
-      "source": "/(.*)",
-      "headers": [
-        {
-          "key": "X-Content-Type-Options",
-          "value": "nosniff"
-        },
-        {
-          "key": "X-Frame-Options",
-          "value": "SAMEORIGIN"
-        },
-        {
-          "key": "X-XSS-Protection",
-          "value": "1; mode=block"
-        },
-        {
-          "key": "Referrer-Policy",
-          "value": "no-referrer-when-downgrade"
-        }
-      ]
+      "src": "/(.*\\.(js|css|ico|png|jpg|svg|woff|woff2|ttf|eot|map))",
+      "dest": "/$1"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/index.html"
     }
   ]
 }
