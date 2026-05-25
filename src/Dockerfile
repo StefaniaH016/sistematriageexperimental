@@ -7,8 +7,12 @@ COPY pom.xml ./
 RUN mvn -B dependency:go-offline
 
 # Copiar código fuente y compilar
+# El contexto de build es la raíz del proyecto, así que src/ está disponible
 COPY src ./src
-RUN mvn -B -DskipTests package
+RUN mvn -B -DskipTests clean package
+
+# Verificar que el JAR se generó
+RUN ls -lah /workspace/target/
 
 # ---------- ETAPA 2: RUNTIME ----------
 FROM eclipse-temurin:17-jre-jammy AS runtime
@@ -21,8 +25,8 @@ RUN addgroup --system triage && adduser --system --ingroup triage triage
 WORKDIR /app
 
 # Copiar el JAR compilado desde la etapa build
-ARG JAR_FILE=target/*.jar
-COPY --from=build /workspace/${JAR_FILE} app.jar
+# Usar la ruta exacta del JAR generado por Maven
+COPY --from=build /workspace/target/sistematriageexperimental-0.0.1-SNAPSHOT.jar app.jar
 RUN chown triage:triage app.jar && chmod 500 app.jar
 
 ENV SPRING_PROFILES_ACTIVE=prod
