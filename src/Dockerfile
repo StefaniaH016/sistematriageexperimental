@@ -6,9 +6,9 @@ WORKDIR /workspace
 COPY pom.xml ./
 RUN mvn -B dependency:go-offline
 
-# Copiar código fuente y compilar
-COPY src ./src
-RUN mvn -B -DskipTests package
+# Copiar código fuente completo y compilar
+COPY . .
+RUN mvn -B -DskipTests clean package
 
 # ---------- ETAPA 2: RUNTIME ----------
 FROM eclipse-temurin:17-jre-jammy AS runtime
@@ -21,8 +21,7 @@ RUN addgroup --system triage && adduser --system --ingroup triage triage
 WORKDIR /app
 
 # Copiar el JAR compilado desde la etapa build
-ARG JAR_FILE=target/*.jar
-COPY --from=build /workspace/${JAR_FILE} app.jar
+COPY --from=build /workspace/target/sistematriageexperimental-0.0.1-SNAPSHOT.jar app.jar
 RUN chown triage:triage app.jar && chmod 500 app.jar
 
 ENV SPRING_PROFILES_ACTIVE=prod
