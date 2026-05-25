@@ -34,21 +34,38 @@ public class AuthController {
         String email = credentials.get("email");
         String password = credentials.get("password");
 
+        System.out.println("🔐 LOGIN ATTEMPT: email=" + email + ", password=" + password);
+
         Usuario usuario = usuarioRepository.findByEmail(email)
-                .orElseThrow(() -> new IllegalArgumentException("Usuario no encontrado con el correo especificado"));
+                .orElseThrow(() -> {
+                    System.out.println("❌ Usuario no encontrado: " + email);
+                    return new IllegalArgumentException("Usuario no encontrado con el correo especificado");
+                });
+
+        System.out.println("✓ Usuario encontrado: " + usuario.getEmail());
+        System.out.println("  Contraseña en BD (hasheada): " + usuario.getPassword());
+        System.out.println("  Contraseña ingresada: " + password);
 
         if (!passwordEncoder.matches(password, usuario.getPassword())) {
+            System.out.println("❌ Contraseña incorrecta");
             throw new IllegalArgumentException("La contraseña ingresada es incorrecta");
         }
 
+        System.out.println("✓ Contraseña correcta");
+
         if (!usuario.getActivo()) {
+            System.out.println("❌ Usuario inactivo");
             throw new IllegalArgumentException(
                     "No puedes ingresar porque este usuario se encuentra inactivo o bloqueado en el sistema");
         }
 
+        System.out.println("✓ Usuario activo");
+
         // Generar token JWT real usando el servicio de JWT
         UserDetails userDetails = userDetailsService.loadUserByUsername(email);
         String jwtToken = jwtService.generateToken(userDetails);
+
+        System.out.println("✓ Token JWT generado: " + jwtToken.substring(0, 20) + "...");
 
         UsuarioResponseDTO response = UsuarioResponseDTO.builder()
                 .id(usuario.getId())
