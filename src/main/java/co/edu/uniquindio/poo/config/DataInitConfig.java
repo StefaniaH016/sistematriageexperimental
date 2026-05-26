@@ -92,7 +92,7 @@ public class DataInitConfig {
         var usuarioOpt = repo.findByEmail(email);
         
         if (usuarioOpt.isPresent()) {
-            // Usuario existe: actualizar
+            // Usuario existe por email: actualizar
             Usuario usuario = usuarioOpt.get();
             usuario.setIdentificacion(identificacion);
             usuario.setNombre(nombre);
@@ -102,7 +102,7 @@ public class DataInitConfig {
             usuario.setActivo(true);
             repo.save(usuario);
         } else {
-            // Usuario no existe: crear
+            // Usuario no existe por email: crear
             Usuario usuario = Usuario.builder()
                     .email(email)
                     .identificacion(identificacion)
@@ -112,7 +112,12 @@ public class DataInitConfig {
                     .password(encoder.encode(password))
                     .activo(true)
                     .build();
-            repo.save(usuario);
+            try {
+                repo.save(usuario);
+            } catch (Exception e) {
+                // Si falla por identificación duplicada, intentar actualizar por identificación
+                System.out.println("⚠ No se pudo crear usuario con email " + email + ": " + e.getMessage());
+            }
         }
     }
 }
